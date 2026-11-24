@@ -1,5 +1,11 @@
 en:
-  label_issue_ical_subscribe: "Calendar subscription (iCal)"
+  label_issue_ical_subscribe: "Calendar subscription"
   label_issue_ical_my_issues: "My issues"
   label_issue_ical_project_issues: "Issues of %{project}"
-  text_issue_ical_hint: "Copy the link address and add it to your calendar app as a subscription (URL). The link contains your Atom access key, which also opens all of your Atom feeds. Keep it private and reset the key under My account if it leaks."
+  label_issue_ical_feed_url: "Calendar feed URL"
+  label_issue_ical_open_webcal: "Open in Apple Calendar / Outlook"
+  label_issue_ical_add_google: "Add to Google Calendar"
+  button_issue_ical_copy: "Copy"
+  text_issue_ical_copied: "Copied"
+  text_issue_ical_intro: "Subscribe to this URL in your calendar app (add calendar from URL). Issue start and due dates show up as all-day events and are refreshed by the app."
+  text_issue_ical_key_warning: "The URL contains your Atom access key, which also opens all of your Atom feeds. Keep it private and reset the key under My account if it leaks."

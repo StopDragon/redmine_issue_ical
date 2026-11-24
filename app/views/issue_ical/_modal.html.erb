@@ -1,0 +1,53 @@
+<%
+  webcal_url = url.sub(/\Ahttps?:/, 'webcal:')
+  google_url = "https://calendar.google.com/calendar/r?cid=#{ERB::Util.url_encode(webcal_url)}"
+%>
+<div id="<%= modal_id %>" class="issue-ical-modal" style="display:none;">
+  <h3 class="title"><%= title %></h3>
+  <p><%= l(:text_issue_ical_intro) %></p>
+  <div class="issue-ical-url">
+    <input type="text" readonly="readonly" value="<%= url %>" class="issue-ical-url-input"
+           aria-label="<%= l(:label_issue_ical_feed_url) %>" />
+    <button type="button" class="issue-ical-copy"
+            data-label="<%= l(:button_issue_ical_copy) %>"
+            data-done-label="<%= l(:text_issue_ical_copied) %>"><%= l(:button_issue_ical_copy) %></button>
+  </div>
+  <p class="issue-ical-apps">
+    <%= link_to l(:label_issue_ical_open_webcal), webcal_url %>
+    <%= link_to l(:label_issue_ical_add_google), google_url, target: '_blank', rel: 'noopener noreferrer' %>
+  </p>
+  <p class="info"><%= l(:text_issue_ical_key_warning) %></p>
+  <p class="buttons">
+    <input type="button" value="<%= l(:button_close) %>" onclick="hideModal(this);" />
+  </p>
+</div>
+<% unless @issue_ical_assets_rendered %>
+<% @issue_ical_assets_rendered = true %>
+<style>
+  .issue-ical-url { display: flex; gap: 6px; margin: 10px 0; }
+  .issue-ical-url input { flex: 1; min-width: 0; font-family: monospace; }
+  .issue-ical-apps a { margin-right: 14px; }
+</style>
+<%= javascript_tag do %>
+(function() {
+  if (window.issueIcalBound) { return; }
+  window.issueIcalBound = true;
+  $(document).on('click', '.issue-ical-copy', function(e) {
+    e.preventDefault();
+    var button = this;
+    var input = $(button).closest('.issue-ical-url').find('input')[0];
+    var done = function() {
+      button.textContent = button.dataset.doneLabel;
+      setTimeout(function() { button.textContent = button.dataset.label; }, 2000);
+    };
+    var fallback = function() { input.select(); document.execCommand('copy'); done(); };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(input.value).then(done, fallback);
+    } else {
+      fallback();
+    }
+  });
+  $(document).on('focus click', '.issue-ical-url-input', function() { this.select(); });
+})();
+<% end %>
+<% end %>

@@ -1,5 +1,11 @@
 ko:
-  label_issue_ical_subscribe: "캘린더 구독 (iCal)"
+  label_issue_ical_subscribe: "캘린더 구독"
   label_issue_ical_my_issues: "내 일감"
   label_issue_ical_project_issues: "%{project} 일감"
-  text_issue_ical_hint: "링크 주소를 복사해 캘린더 앱에 구독(URL)으로 추가하세요. 링크에 든 Atom 접근키로 내 모든 Atom 피드를 읽을 수 있으니 비밀번호처럼 다루고, 유출되면 내 계정에서 키를 초기화하세요."
+  label_issue_ical_feed_url: "캘린더 구독 주소"
+  label_issue_ical_open_webcal: "Apple 캘린더·Outlook으로 열기"
+  label_issue_ical_add_google: "Google 캘린더에 추가"
+  button_issue_ical_copy: "복사"
+  text_issue_ical_copied: "복사됨"
+  text_issue_ical_intro: "이 주소를 캘린더 앱에 URL로 구독하세요. 일감의 시작일~종료일이 종일 일정으로 들어가고, 캘린더 앱이 주기적으로 새로 고칩니다."
+  text_issue_ical_key_warning: "주소에 든 Atom 접근키로 내 모든 Atom 피드를 읽을 수 있으니 비밀번호처럼 다루고, 유출되면 내 계정에서 키를 초기화하세요."

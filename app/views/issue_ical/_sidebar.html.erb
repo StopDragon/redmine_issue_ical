@@ -1,12 +1,21 @@
 <% if User.current.logged? %>
 <h3><%= l(:label_issue_ical_subscribe) %></h3>
 <ul class="issue-ical-links">
-  <li><%= link_to l(:label_issue_ical_my_issues),
-                  my_issue_ical_url(format: 'ics', key: User.current.atom_key) %></li>
+  <li><%= link_to l(:label_issue_ical_my_issues), '#',
+                  onclick: "showModal('issue-ical-modal-my', '640px'); return false;" %></li>
   <% if @project && User.current.allowed_to?(:view_issues, @project) %>
-  <li><%= link_to l(:label_issue_ical_project_issues, project: @project.name),
-                  project_issue_ical_url(@project, format: 'ics', key: User.current.atom_key) %></li>
+  <li><%= link_to l(:label_issue_ical_project_issues, project: @project.name), '#',
+                  onclick: "showModal('issue-ical-modal-project', '640px'); return false;" %></li>
   <% end %>
 </ul>
-<p class="info"><%= l(:text_issue_ical_hint) %></p>
+<%= render partial: 'issue_ical/modal',
+           locals: { modal_id: 'issue-ical-modal-my',
+                     title: "#{l(:label_issue_ical_subscribe)} - #{l(:label_issue_ical_my_issues)}",
+                     url: my_issue_ical_url(format: 'ics', key: User.current.atom_key) } %>
+<% if @project && User.current.allowed_to?(:view_issues, @project) %>
+<%= render partial: 'issue_ical/modal',
+           locals: { modal_id: 'issue-ical-modal-project',
+                     title: "#{l(:label_issue_ical_subscribe)} - #{l(:label_issue_ical_project_issues, project: @project.name)}",
+                     url: project_issue_ical_url(@project, format: 'ics', key: User.current.atom_key) } %>
+<% end %>
 <% end %>

@@ -117,19 +117,26 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
            :issues, :issue_statuses, :trackers, :projects_trackers, :enabled_modules,
            :enumerations, :issue_categories, :versions, :tokens, :queries
 
-  test 'my account page links to the personal feed' do
+  test 'my account page shows a subscribe button with the personal feed url' do
     log_user('jsmith', 'jsmith')
     get '/my/account'
     assert_response :success
-    assert_select 'a.issue-ical-link[href*=?]', '/issue_ical/my.ics?key='
+    assert_select 'div.contextual a.icon-issue-ical svg.icon-svg'
+    assert_select '#issue-ical-modal-my input.issue-ical-url-input[value*=?]', '/issue_ical/my.ics?key='
+    assert_select '#issue-ical-modal-my button.issue-ical-copy'
+    assert_select '#issue-ical-modal-my a[href^=?]', 'webcal://'
+    assert_select '#issue-ical-modal-my a[href^=?]', 'https://calendar.google.com/calendar/r?cid=webcal%3A%2F%2F'
+    # the feed url is not a plain link, so clicking never downloads the file
+    assert_select 'a[href^=?][href*=?]', 'http', 'issue_ical/my.ics', 0
   end
 
-  test 'issues sidebar links to the personal and project feeds' do
+  test 'issues sidebar opens the personal and project feeds' do
     log_user('jsmith', 'jsmith')
     get '/projects/ecookbook/issues'
     assert_response :success
-    assert_select 'ul.issue-ical-links a[href*=?]', '/issue_ical/my.ics?key='
-    assert_select 'ul.issue-ical-links a[href*=?]', '/projects/ecookbook/issue_ical.ics?key='
+    assert_select 'ul.issue-ical-links a', 2
+    assert_select '#issue-ical-modal-my input[value*=?]', '/issue_ical/my.ics?key='
+    assert_select '#issue-ical-modal-project input[value*=?]', '/projects/ecookbook/issue_ical.ics?key='
   end
 
   test 'anonymous users see no feed links' do

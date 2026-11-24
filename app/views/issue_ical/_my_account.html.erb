@@ -1,0 +1,8 @@
+<% if User.current.logged? %>
+<%= link_to '#', class: 'icon icon-issue-ical',
+            onclick: "showModal('issue-ical-modal-my', '640px'); return false;" do %><%= render partial: 'issue_ical/icon' %><span class="icon-label"><%= l(:label_issue_ical_subscribe) %></span><% end %>
+<%= render partial: 'issue_ical/modal',
+           locals: { modal_id: 'issue-ical-modal-my',
+                     title: "#{l(:label_issue_ical_subscribe)} - #{l(:label_issue_ical_my_issues)}",
+                     url: my_issue_ical_url(format: 'ics', key: User.current.atom_key) } %>
+<% end %>

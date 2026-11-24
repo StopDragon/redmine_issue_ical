@@ -11,7 +11,7 @@ Every open issue with a start date or a due date becomes an all-day event that s
 - **Project** feed: open issues of one project (subprojects follow the *Display subprojects issues on main projects by default* setting).
 - Uses Redmine permissions: a feed never shows an issue the user cannot see in Redmine.
 - Authenticates with the user's existing **Atom access key**, so no new credentials are needed and the key can be reset at any time.
-- Links appear on the *My account* page and in the sidebar of the issue list.
+- A **Calendar subscription** button on the *My account* page and links in the issue list sidebar open a dialog with the feed URL, a **Copy** button, and one-click subscribe links for Apple Calendar / Outlook (`webcal://`) and Google Calendar.
 - No extra gems and no database migrations.
 
 ## Requirements
@@ -30,9 +30,12 @@ No migration is needed. To uninstall, delete the `plugins/redmine_issue_ical` di
 
 ## Usage
 
-1. Open *My account*, or the issue list of a project.
-2. Copy the link **Calendar subscription (iCal)** (or **My issues** / **Issues of …** in the sidebar).
-3. In your calendar app, add a calendar *from URL* / *subscription* and paste the link.
+1. Open *My account* and click **Calendar subscription**, or click **My issues** / **Issues of …** under *Calendar subscription* in the issue list sidebar.
+2. In the dialog, either
+   - click **Open in Apple Calendar / Outlook** or **Add to Google Calendar**, or
+   - click **Copy** and add the URL to your calendar app as a calendar *from URL* / *subscription*.
+
+Do not download the `.ics` file and import it: an imported file is a one-time copy and never updates. Subscribe to the URL instead.
 
 Feed URLs:
 
@@ -83,6 +86,10 @@ Run the tests from the Redmine root:
 bin/rails redmine:plugins:test NAME=redmine_issue_ical RAILS_ENV=test
 ```
 
+## Credits
+
+The calendar icon is from [Tabler Icons](https://tabler.io/icons) (MIT License), the icon set Redmine itself uses.
+
 ## License
 
 GNU General Public License v2.0 or later. See [LICENSE](LICENSE).
@@ -100,8 +107,12 @@ Redmine 일감의 시작일·종료일을 캘린더 앱(Google 캘린더, Apple 
 
 ### 사용법
 
-1. **내 계정** 화면이나 프로젝트 일감 목록 오른쪽 사이드바에서 **캘린더 구독 (iCal)** 링크 주소를 복사합니다.
-2. 캘린더 앱에서 **URL로 구독**(Google 캘린더: 다른 캘린더 → URL로 추가)을 선택해 붙여 넣습니다.
+1. **내 계정** 오른쪽 위 **캘린더 구독** 버튼, 또는 일감 목록 사이드바의 **캘린더 구독 → 내 일감 / ○○ 일감**을 누릅니다.
+2. 뜨는 창에서
+   - **Apple 캘린더·Outlook으로 열기** 또는 **Google 캘린더에 추가**를 누르거나,
+   - **복사**를 눌러 주소를 캘린더 앱에 **URL로 구독**(Google 캘린더: 다른 캘린더 → URL로 추가)합니다.
+
+`.ics` 파일을 내려받아 가져오기(import)하면 그때 일정만 한 번 복사되고 갱신되지 않습니다. 반드시 주소로 구독하세요.
 
 ### 알아 둘 점
 
