@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 (2026-11-25)
+
+- The preference became *Calendar status display* with five choices: ✔ on closed (default), O closed / X open, status name on every issue, no marker, or hide closed issues. A choice saved in 0.3.0 carries over.
+- The **Change** link in the subscribe dialog now closes the dialog and jumps to the setting when you are already on My account (before, it only changed the URL behind the open dialog).
+
 ## 0.3.0 (2026-11-25)
 
 - Closed issues now stay in the calendar with a `✔ ` prefix instead of disappearing.

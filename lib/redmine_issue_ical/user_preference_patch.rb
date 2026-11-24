@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
 module RedmineIssueIcal
-  # Per-user choice of what the feeds do with closed issues, stored in the
+  # Per-user choice of how the feeds show issue status, stored in the
   # user's preferences (no database migration needed).
-  #   mark - keep closed issues and prefix their title with a check mark (default)
-  #   hide - leave closed issues out
+  #   mark   - closed issues get a check mark (default)
+  #   ox     - closed issues get "O", open issues get "X"
+  #   status - every issue gets its status name, e.g. "[In Progress]"
+  #   plain  - no marker; closed issues stay as they are
+  #   hide   - no marker; closed issues are left out
+  # The preference key keeps its 0.3.0 name so saved choices carry over.
   module UserPreferencePatch
-    CLOSED_OPTIONS = %w[mark hide].freeze
+    CLOSED_OPTIONS = %w[mark ox status plain hide].freeze
     CLOSED_DEFAULT = 'mark'
 
     def issue_ical_closed

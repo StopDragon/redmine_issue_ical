@@ -4,8 +4,9 @@
 #   /issue_ical/my.ics?key=ATOM_KEY                  issues assigned to me (or my groups)
 #   /projects/:project_id/issue_ical.ics?key=ATOM_KEY issues of a project
 #
-# Closed issues are kept with a check mark, or left out, depending on the
-# user's preference (My account > Preferences).
+# How issue status is shown (check mark, O/X, status name, nothing) and
+# whether closed issues are left out follow the user's preference
+# (My account > Preferences).
 #
 # Calendar apps cannot log in, so the feed accepts the user's Atom access key,
 # the same key Redmine uses for its Atom feeds. Results go through
@@ -89,11 +90,19 @@ class IssueIcalController < ApplicationController
     )
   end
 
-  CLOSED_MARK = "\u2714 " # check mark
+  CHECK_MARK = "\u2714 "
 
   def summary_for(issue)
-    summary = "[#{issue.project.name}] #{issue.tracker.name} ##{issue.id}: #{issue.subject}"
-    issue.closed? ? CLOSED_MARK + summary : summary
+    status_prefix(issue) + "[#{issue.project.name}] #{issue.tracker.name} ##{issue.id}: #{issue.subject}"
+  end
+
+  def status_prefix(issue)
+    case User.current.pref.issue_ical_closed
+    when 'mark' then issue.closed? ? CHECK_MARK : ''
+    when 'ox' then issue.closed? ? 'O ' : 'X '
+    when 'status' then "[#{issue.status.name}] "
+    else ''
+    end
   end
 
   def description_for(issue)

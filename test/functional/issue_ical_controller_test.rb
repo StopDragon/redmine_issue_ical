@@ -45,6 +45,42 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     assert_no_match(/SUMMARY:\u2714 [^\r]*#2:/, body)
   end
 
+  def summaries_with(option)
+    Issue.find(3).update_columns(status_id: 5)
+    user = User.find(3)
+    user.pref.issue_ical_closed = option
+    user.pref.save!
+    body = feed_body(key: user.atom_key).gsub("\r\n ", '')
+    {
+      open: body[/^SUMMARY:.*#2:.*$/],
+      closed: body[/^SUMMARY:.*#3:.*$/]
+    }
+  end
+
+  test 'ox option marks closed issues with O and open issues with X' do
+    s = summaries_with('ox')
+    assert s[:closed].start_with?('SUMMARY:O [eCookbook]'), s[:closed]
+    assert s[:open].start_with?('SUMMARY:X [eCookbook]'), s[:open]
+  end
+
+  test 'status option prefixes every issue with its status name' do
+    s = summaries_with('status')
+    assert s[:closed].start_with?('SUMMARY:[Closed] [eCookbook]'), s[:closed]
+    assert s[:open].start_with?('SUMMARY:[Assigned] [eCookbook]'), s[:open]
+  end
+
+  test 'plain option keeps closed issues without any marker' do
+    s = summaries_with('plain')
+    assert s[:closed].start_with?('SUMMARY:[eCookbook]'), s[:closed]
+    assert s[:open].start_with?('SUMMARY:[eCookbook]'), s[:open]
+  end
+
+  test 'mark option only marks closed issues' do
+    s = summaries_with('mark')
+    assert s[:closed].start_with?("SUMMARY:\u2714 [eCookbook]"), s[:closed]
+    assert s[:open].start_with?('SUMMARY:[eCookbook]'), s[:open]
+  end
+
   test 'closed issues are left out when the user chose to hide them' do
     Issue.find(3).update_columns(status_id: 5)
     user = User.find(3)
@@ -158,6 +194,8 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
                   'pref[issue_ical_closed]'
     assert_select '#issue-ical-preferences input[type=radio][value=hide]'
     assert_select '#issue-ical-modal-my a[href$=?]', '/my/account#issue-ical-preferences'
+    assert_select '#issue-ical-preferences input[type=radio]', 5
+    assert_select '#issue-ical-modal-my a.issue-ical-settings-link'
   end
 
   test 'closed issues option is saved from my account' do

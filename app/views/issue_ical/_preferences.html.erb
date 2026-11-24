@@ -1,14 +1,11 @@
 <% closed_option = user.pref.issue_ical_closed %>
 <p id="issue-ical-preferences">
-  <label><%= l(:label_issue_ical_closed_issues) %></label>
+  <label><%= l(:label_issue_ical_display) %></label>
+  <% RedmineIssueIcal::UserPreferencePatch::CLOSED_OPTIONS.each do |option| %>
   <label class="block">
-    <%= radio_button_tag 'pref[issue_ical_closed]', 'mark', closed_option == 'mark',
-                         id: 'pref_issue_ical_closed_mark' %>
-    <%= l(:label_issue_ical_closed_mark) %>
+    <%= radio_button_tag 'pref[issue_ical_closed]', option, closed_option == option,
+                         id: "pref_issue_ical_closed_#{option}" %>
+    <%= l("label_issue_ical_display_#{option}") %>
   </label>
-  <label class="block">
-    <%= radio_button_tag 'pref[issue_ical_closed]', 'hide', closed_option == 'hide',
-                         id: 'pref_issue_ical_closed_hide' %>
-    <%= l(:label_issue_ical_closed_hide) %>
-  </label>
+  <% end %>
 </p>

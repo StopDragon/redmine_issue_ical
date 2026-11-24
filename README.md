@@ -52,7 +52,7 @@ Feed URLs:
 | Due date only | All-day event on the due date |
 | Start date only | All-day event on the start date |
 | No dates | Not included |
-| Closed | Kept with a `✔ ` prefix, or left out (per-user preference, see below) |
+| Closed | Kept with a marker, or left out (per-user preference, see below) |
 
 - Title: `[Project] Tracker #123: Subject`
 - Description: status, priority, assignee, % done and the issue link
@@ -61,14 +61,19 @@ Feed URLs:
 
 Redmine stores start and due dates without a time, so events are always all-day.
 
-### Closed issues (per-user preference)
+### Status display (per-user preference)
 
-Each user chooses under *My account → Preferences → Closed issues in calendar*:
+Each user chooses under *My account → Preferences → Calendar status display* how issue status shows up in event titles:
 
-- **Keep them, marked with ✔** (default): closed issues stay in the calendar, with `✔ ` in front of the title.
-- **Leave them out**: closed issues disappear from the calendar at the next refresh.
+| Option | Closed issue | Open issue |
+|---|---|---|
+| **✔ on closed** (default) | `✔ [Project] Bug #12: …` | `[Project] Bug #13: …` |
+| **O closed / X open** | `O [Project] …` | `X [Project] …` |
+| **Status name** | `[Closed] [Project] …` | `[In Progress] [Project] …` |
+| **No marker** | `[Project] …` | `[Project] …` |
+| **Hide closed issues** | not in the calendar | `[Project] …` |
 
-The preference is read every time the feed is fetched, so existing subscriptions follow a change without subscribing again. It applies to both the personal and the project feeds of that user. "Closed" means a status marked *Issue closed* in Redmine's status settings.
+The preference is read every time the feed is fetched, so existing subscriptions follow a change without subscribing again (at the next refresh). It applies to both the personal and the project feeds of that user. "Closed" means a status marked *Issue closed* in Redmine's status settings. The **Change** link in the subscribe dialog jumps to this setting.
 
 ### Refresh interval
 
@@ -111,7 +116,7 @@ Redmine 일감의 시작일·종료일을 캘린더 앱(Google 캘린더, Apple 
 
 - **내 일감**: 나 또는 내가 속한 그룹에 배정된 일감(전체 프로젝트)
 - **프로젝트 일감**: 해당 프로젝트의 일감
-- **완료된 일감**: 사용자마다 **내 계정 → 환경설정 → 캘린더의 완료된 일감**에서 고릅니다. 기본값은 「✔ 붙여서 계속 표시」이고, 「캘린더에서 빼기」를 고르면 다음 새로고침 때 빠집니다. 이미 구독한 주소를 바꿀 필요는 없습니다.
+- **상태 표시**: 사용자마다 **내 계정 → 설정 → 캘린더 상태 표시**에서 고릅니다. 「완료에 ✔」(기본) / 「완료 O / 미완료 X」 / 「상태 이름 (예: [진행])」 / 「표시 없음」 / 「완료 일감 빼기」 중 하나이고, 다음 새로고침 때 반영됩니다. 이미 구독한 주소를 바꿀 필요는 없습니다. 구독 창의 **설정 바꾸기** 링크로 바로 갈 수 있습니다.
 - Redmine 권한을 그대로 따르므로 내가 볼 수 없는 일감은 나오지 않습니다.
 - 인증은 기존 **Atom 접근키**를 씁니다. 따로 비밀번호를 만들지 않아도 됩니다.
 

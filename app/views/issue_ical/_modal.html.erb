@@ -17,9 +17,10 @@
     <%= link_to l(:label_issue_ical_add_google), google_url, target: '_blank', rel: 'noopener noreferrer' %>
   </p>
   <p class="info">
-    <%= l(:text_issue_ical_closed_setting,
-          value: l(User.current.pref.issue_ical_hide_closed? ? :label_issue_ical_closed_hide : :label_issue_ical_closed_mark)) %>
-    <%= link_to l(:label_issue_ical_change_setting), my_account_path(anchor: 'issue-ical-preferences') %>
+    <%= l(:text_issue_ical_display_setting,
+          value: l("label_issue_ical_display_#{User.current.pref.issue_ical_closed}")) %>
+    <%= link_to l(:label_issue_ical_change_setting), my_account_path(anchor: 'issue-ical-preferences'),
+                class: 'issue-ical-settings-link' %>
   </p>
   <p class="info"><%= l(:text_issue_ical_key_warning) %></p>
   <p class="buttons">
@@ -32,6 +33,7 @@
   .issue-ical-url { display: flex; gap: 6px; margin: 10px 0; }
   .issue-ical-url input { flex: 1; min-width: 0; font-family: monospace; }
   .issue-ical-apps a { margin-right: 14px; }
+  #issue-ical-preferences.issue-ical-highlight { background: #ffffcc; transition: background 1s; }
 </style>
 <%= javascript_tag do %>
 (function() {
@@ -53,6 +55,25 @@
     }
   });
   $(document).on('focus click', '.issue-ical-url-input', function() { this.select(); });
+  // On My account the settings are on the same page: a plain #anchor link
+  // would leave the dialog open on top, so close it and scroll instead.
+  var showSettings = function() {
+    var target = document.getElementById('issue-ical-preferences');
+    if (!target) { return false; }
+    target.scrollIntoView({ block: 'center' });
+    $(target).addClass('issue-ical-highlight');
+    setTimeout(function() { $(target).removeClass('issue-ical-highlight'); }, 2000);
+    return true;
+  };
+  $(document).on('click', '.issue-ical-settings-link', function(e) {
+    if (!document.getElementById('issue-ical-preferences')) { return; }
+    e.preventDefault();
+    hideModal(this);
+    showSettings();
+  });
+  $(function() {
+    if (window.location.hash === '#issue-ical-preferences') { showSettings(); }
+  });
 })();
 <% end %>
 <% end %>
