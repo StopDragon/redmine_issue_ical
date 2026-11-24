@@ -1,0 +1,5 @@
+ko:
+  label_issue_ical_subscribe: "캘린더 구독 (iCal)"
+  label_issue_ical_my_issues: "내 일감"
+  label_issue_ical_project_issues: "%{project} 일감"
+  text_issue_ical_hint: "링크 주소를 복사해 캘린더 앱에 구독(URL)으로 추가하세요. 링크에 든 Atom 접근키로 내 모든 Atom 피드를 읽을 수 있으니 비밀번호처럼 다루고, 유출되면 내 계정에서 키를 초기화하세요."

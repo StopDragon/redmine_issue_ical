@@ -1,0 +1,5 @@
+en:
+  label_issue_ical_subscribe: "Calendar subscription (iCal)"
+  label_issue_ical_my_issues: "My issues"
+  label_issue_ical_project_issues: "Issues of %{project}"
+  text_issue_ical_hint: "Copy the link address and add it to your calendar app as a subscription (URL). The link contains your Atom access key, which also opens all of your Atom feeds. Keep it private and reset the key under My account if it leaks."

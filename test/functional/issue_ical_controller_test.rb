@@ -1,0 +1,140 @@
+# frozen_string_literal: true
+
+require File.expand_path('../test_helper', __dir__)
+
+class IssueIcalControllerTest < Redmine::ControllerTest
+  fixtures :projects, :users, :email_addresses, :user_preferences, :roles, :members, :member_roles,
+           :issues, :issue_statuses, :trackers, :projects_trackers, :enabled_modules,
+           :enumerations, :issue_categories, :versions, :tokens, :groups_users, :watchers
+
+  def setup
+    User.current = nil
+    Setting.default_language = 'en'
+    # Issue 4: project 2 (private), assigned to jsmith
+    Issue.find(4).update_columns(start_date: Date.new(2026, 12, 1), due_date: Date.new(2026, 12, 3))
+  end
+
+  def feed_body(params)
+    get :index, params: { format: 'ics' }.merge(params)
+    assert_response :success
+    assert_equal 'text/calendar', response.media_type
+    response.body
+  end
+
+  test 'my feed with the atom key lists issues assigned to the user' do
+    body = feed_body(key: User.find(2).atom_key)
+    assert_includes body, 'UID:redmine-issue-4@'
+    assert_includes body, "DTSTART;VALUE=DATE:20261201\r\n"
+    assert_includes body, "DTEND;VALUE=DATE:20261204\r\n"
+    assert_not_includes body, 'UID:redmine-issue-3@' # assigned to dlopper
+  end
+
+  test 'my feed includes issues assigned to a group of the user' do
+    group = Group.find(10)
+    user = group.users.first
+    Issue.find(1).update_columns(assigned_to_id: group.id)
+    body = feed_body(key: user.atom_key)
+    assert_includes body, 'UID:redmine-issue-1@'
+  end
+
+  test 'my feed leaves out closed issues' do
+    Issue.find(3).update_columns(status_id: 5)
+    body = feed_body(key: User.find(3).atom_key)
+    assert_includes body, 'UID:redmine-issue-2@'
+    assert_not_includes body, 'UID:redmine-issue-3@'
+  end
+
+  test 'my feed leaves out issues the user can no longer see' do
+    Issue.find(4).update_columns(assigned_to_id: 3) # dlopper is not a member of project 2
+    body = feed_body(key: User.find(3).atom_key)
+    assert_not_includes body, 'UID:redmine-issue-4@'
+  end
+
+  test 'feed without a key requires login' do
+    get :index, params: { format: 'ics' }
+    assert_response :unauthorized
+  end
+
+  test 'feed with an unknown key requires login' do
+    get :index, params: { format: 'ics', key: 'not-a-real-key' }
+    assert_response :unauthorized
+  end
+
+  test 'feed refuses the key of a locked user' do
+    user = User.find(2)
+    key = user.atom_key
+    user.lock!
+    get :index, params: { format: 'ics', key: key }
+    assert_response :unauthorized
+  end
+
+  test 'project feed lists open issues of the project' do
+    body = feed_body(project_id: 'ecookbook', key: User.find(2).atom_key)
+    assert_includes body, 'UID:redmine-issue-1@'
+    assert_includes body, 'UID:redmine-issue-3@'
+    assert_not_includes body, 'UID:redmine-issue-4@' # other project
+    assert_includes body, 'X-WR-CALNAME:Redmine - eCookbook'
+  end
+
+  test 'project feed is denied without view_issues permission' do
+    get :index, params: { format: 'ics', project_id: 'onlinestore', key: User.find(3).atom_key }
+    assert_response :forbidden
+  end
+
+  test 'project feed returns 404 for an unknown project' do
+    get :index, params: { format: 'ics', project_id: 'no-such-project', key: User.find(2).atom_key }
+    assert_response :not_found
+  end
+
+  test 'issue url and description are included' do
+    body = feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')
+    assert_includes body, 'URL:http://test.host/issues/4'
+    assert_includes body, 'DESCRIPTION:Status: New\\nPriority: '
+  end
+
+  test 'over the cap, the newest issues are kept' do
+    IssueIcalController.stubs(:max_issues).returns(1)
+    body = feed_body(project_id: 'ecookbook', key: User.find(2).atom_key)
+    assert_equal 1, body.scan('BEGIN:VEVENT').size
+    newest = Issue.visible(User.find(2)).open.where(project_id: [1, 3, 4, 5, 6])
+                  .where('start_date IS NOT NULL OR due_date IS NOT NULL').maximum(:id)
+    assert_includes body, "UID:redmine-issue-#{newest}@"
+  end
+
+  test 'HEAD request with the atom key succeeds' do
+    head :index, params: { format: 'ics', key: User.find(2).atom_key }
+    assert_response :success
+  end
+
+  test 'atom key does not start a session' do
+    feed_body(key: User.find(2).atom_key)
+    assert_nil session[:user_id]
+  end
+end
+
+class IssueIcalLinksTest < Redmine::IntegrationTest
+  fixtures :projects, :users, :email_addresses, :user_preferences, :roles, :members, :member_roles,
+           :issues, :issue_statuses, :trackers, :projects_trackers, :enabled_modules,
+           :enumerations, :issue_categories, :versions, :tokens, :queries
+
+  test 'my account page links to the personal feed' do
+    log_user('jsmith', 'jsmith')
+    get '/my/account'
+    assert_response :success
+    assert_select 'a.issue-ical-link[href*=?]', '/issue_ical/my.ics?key='
+  end
+
+  test 'issues sidebar links to the personal and project feeds' do
+    log_user('jsmith', 'jsmith')
+    get '/projects/ecookbook/issues'
+    assert_response :success
+    assert_select 'ul.issue-ical-links a[href*=?]', '/issue_ical/my.ics?key='
+    assert_select 'ul.issue-ical-links a[href*=?]', '/projects/ecookbook/issue_ical.ics?key='
+  end
+
+  test 'anonymous users see no feed links' do
+    get '/projects/ecookbook/issues'
+    assert_response :success
+    assert_select 'ul.issue-ical-links', 0
+  end
+end

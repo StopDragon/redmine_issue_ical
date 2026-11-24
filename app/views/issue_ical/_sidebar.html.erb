@@ -1,0 +1,12 @@
+<% if User.current.logged? %>
+<h3><%= l(:label_issue_ical_subscribe) %></h3>
+<ul class="issue-ical-links">
+  <li><%= link_to l(:label_issue_ical_my_issues),
+                  my_issue_ical_url(format: 'ics', key: User.current.atom_key) %></li>
+  <% if @project && User.current.allowed_to?(:view_issues, @project) %>
+  <li><%= link_to l(:label_issue_ical_project_issues, project: @project.name),
+                  project_issue_ical_url(@project, format: 'ics', key: User.current.atom_key) %></li>
+  <% end %>
+</ul>
+<p class="info"><%= l(:text_issue_ical_hint) %></p>
+<% end %>

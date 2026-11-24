@@ -1,0 +1,4 @@
+<%= link_to l(:label_issue_ical_subscribe),
+            my_issue_ical_url(format: 'ics', key: User.current.atom_key),
+            class: 'issue-ical-link',
+            title: l(:text_issue_ical_hint) %>
