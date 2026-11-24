@@ -1,14 +1,14 @@
 # Redmine Issue iCal
 
 Subscribe to Redmine issues from any calendar app (Google Calendar, Apple Calendar, Outlook, Thunderbird, ...).
-Every open issue with a start date or a due date becomes an all-day event that spans from the start date to the due date.
+Every issue with a start date or a due date becomes an all-day event that spans from the start date to the due date.
 
 [한국어 안내는 아래에 있습니다.](#한국어)
 
 ## Features
 
-- **My issues** feed: open issues assigned to you or to one of your groups, across all projects.
-- **Project** feed: open issues of one project (subprojects follow the *Display subprojects issues on main projects by default* setting).
+- **My issues** feed: issues assigned to you or to one of your groups, across all projects.
+- **Project** feed: issues of one project (subprojects follow the *Display subprojects issues on main projects by default* setting).
 - Uses Redmine permissions: a feed never shows an issue the user cannot see in Redmine.
 - Authenticates with the user's existing **Atom access key**, so no new credentials are needed and the key can be reset at any time.
 - A **Calendar subscription** button on the *My account* page and links in the issue list sidebar open a dialog with the feed URL, a **Copy** button, and one-click subscribe links for Apple Calendar / Outlook (`webcal://`) and Google Calendar.
@@ -52,7 +52,7 @@ Feed URLs:
 | Due date only | All-day event on the due date |
 | Start date only | All-day event on the start date |
 | No dates | Not included |
-| Closed | Not included |
+| Closed | Kept with a `✔ ` prefix, or left out (per-user preference, see below) |
 
 - Title: `[Project] Tracker #123: Subject`
 - Description: status, priority, assignee, % done and the issue link
@@ -60,6 +60,15 @@ Feed URLs:
 - At most 2,000 issues per feed.
 
 Redmine stores start and due dates without a time, so events are always all-day.
+
+### Closed issues (per-user preference)
+
+Each user chooses under *My account → Preferences → Closed issues in calendar*:
+
+- **Keep them, marked with ✔** (default): closed issues stay in the calendar, with `✔ ` in front of the title.
+- **Leave them out**: closed issues disappear from the calendar at the next refresh.
+
+The preference is read every time the feed is fetched, so existing subscriptions follow a change without subscribing again. It applies to both the personal and the project feeds of that user. "Closed" means a status marked *Issue closed* in Redmine's status settings.
 
 ### Refresh interval
 
@@ -98,10 +107,11 @@ GNU General Public License v2.0 or later. See [LICENSE](LICENSE).
 
 ## 한국어
 
-Redmine 일감의 시작일·종료일을 캘린더 앱(Google 캘린더, Apple 캘린더, Outlook 등)에서 구독할 수 있게 해 주는 플러그인입니다. 열린 일감 중 시작일이나 종료일이 있는 일감이 시작일부터 종료일까지의 종일 일정으로 들어갑니다.
+Redmine 일감의 시작일·종료일을 캘린더 앱(Google 캘린더, Apple 캘린더, Outlook 등)에서 구독할 수 있게 해 주는 플러그인입니다. 시작일이나 종료일이 있는 일감이 시작일부터 종료일까지의 종일 일정으로 들어갑니다.
 
-- **내 일감**: 나 또는 내가 속한 그룹에 배정된 열린 일감(전체 프로젝트)
-- **프로젝트 일감**: 해당 프로젝트의 열린 일감
+- **내 일감**: 나 또는 내가 속한 그룹에 배정된 일감(전체 프로젝트)
+- **프로젝트 일감**: 해당 프로젝트의 일감
+- **완료된 일감**: 사용자마다 **내 계정 → 환경설정 → 캘린더의 완료된 일감**에서 고릅니다. 기본값은 「✔ 붙여서 계속 표시」이고, 「캘린더에서 빼기」를 고르면 다음 새로고침 때 빠집니다. 이미 구독한 주소를 바꿀 필요는 없습니다.
 - Redmine 권한을 그대로 따르므로 내가 볼 수 없는 일감은 나오지 않습니다.
 - 인증은 기존 **Atom 접근키**를 씁니다. 따로 비밀번호를 만들지 않아도 됩니다.
 

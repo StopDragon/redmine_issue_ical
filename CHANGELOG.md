@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (2026-11-25)
+
+- Closed issues now stay in the calendar with a `✔ ` prefix instead of disappearing.
+- New per-user preference *My account → Preferences → Closed issues in calendar*: keep them marked with ✔ (default) or leave them out. Existing subscriptions follow the preference without subscribing again.
+- The subscribe dialog shows the current choice with a link to change it.
+
 ## 0.2.0 (2026-11-25)
 
 - The *My account* button now matches the other buttons (icon + label) and opens a dialog instead of linking to the feed, so clicking no longer downloads an `.ics` file.

@@ -3,6 +3,7 @@
 module RedmineIssueIcal
   class Hooks < Redmine::Hook::ViewListener
     render_on :view_my_account_contextual, partial: 'issue_ical/my_account'
+    render_on :view_my_account_preferences, partial: 'issue_ical/preferences'
     render_on :view_issues_sidebar_queries_bottom, partial: 'issue_ical/sidebar'
   end
 end

@@ -1,0 +1,14 @@
+<% closed_option = user.pref.issue_ical_closed %>
+<p id="issue-ical-preferences">
+  <label><%= l(:label_issue_ical_closed_issues) %></label>
+  <label class="block">
+    <%= radio_button_tag 'pref[issue_ical_closed]', 'mark', closed_option == 'mark',
+                         id: 'pref_issue_ical_closed_mark' %>
+    <%= l(:label_issue_ical_closed_mark) %>
+  </label>
+  <label class="block">
+    <%= radio_button_tag 'pref[issue_ical_closed]', 'hide', closed_option == 'hide',
+                         id: 'pref_issue_ical_closed_hide' %>
+    <%= l(:label_issue_ical_closed_hide) %>
+  </label>
+</p>

@@ -37,10 +37,31 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     assert_includes body, 'UID:redmine-issue-1@'
   end
 
-  test 'my feed leaves out closed issues' do
+  test 'closed issues are kept with a check mark by default' do
     Issue.find(3).update_columns(status_id: 5)
-    body = feed_body(key: User.find(3).atom_key)
+    body = feed_body(key: User.find(3).atom_key).gsub("\r\n ", '')
     assert_includes body, 'UID:redmine-issue-2@'
+    assert_match(/SUMMARY:\u2714 \[eCookbook\] [^\r]*#3:/, body)
+    assert_no_match(/SUMMARY:\u2714 [^\r]*#2:/, body)
+  end
+
+  test 'closed issues are left out when the user chose to hide them' do
+    Issue.find(3).update_columns(status_id: 5)
+    user = User.find(3)
+    user.pref.issue_ical_closed = 'hide'
+    user.pref.save!
+    body = feed_body(key: user.atom_key)
+    assert_includes body, 'UID:redmine-issue-2@'
+    assert_not_includes body, 'UID:redmine-issue-3@'
+  end
+
+  test 'project feed follows the preference of the subscribing user' do
+    Issue.find(3).update_columns(status_id: 5)
+    user = User.find(2)
+    user.pref.issue_ical_closed = 'hide'
+    user.pref.save!
+    body = feed_body(project_id: 'ecookbook', key: user.atom_key)
+    assert_includes body, 'UID:redmine-issue-1@'
     assert_not_includes body, 'UID:redmine-issue-3@'
   end
 
@@ -96,7 +117,7 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     IssueIcalController.stubs(:max_issues).returns(1)
     body = feed_body(project_id: 'ecookbook', key: User.find(2).atom_key)
     assert_equal 1, body.scan('BEGIN:VEVENT').size
-    newest = Issue.visible(User.find(2)).open.where(project_id: [1, 3, 4, 5, 6])
+    newest = Issue.visible(User.find(2)).where(project_id: [1, 3, 4, 5, 6])
                   .where('start_date IS NOT NULL OR due_date IS NOT NULL').maximum(:id)
     assert_includes body, "UID:redmine-issue-#{newest}@"
   end
@@ -128,6 +149,24 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
     assert_select '#issue-ical-modal-my a[href^=?]', 'https://calendar.google.com/calendar/r?cid=webcal%3A%2F%2F'
     # the feed url is not a plain link, so clicking never downloads the file
     assert_select 'a[href^=?][href*=?]', 'http', 'issue_ical/my.ics', 0
+  end
+
+  test 'my account preferences show the closed issues option' do
+    log_user('jsmith', 'jsmith')
+    get '/my/account'
+    assert_select '#issue-ical-preferences input[type=radio][name=?][value=mark][checked=checked]',
+                  'pref[issue_ical_closed]'
+    assert_select '#issue-ical-preferences input[type=radio][value=hide]'
+    assert_select '#issue-ical-modal-my a[href$=?]', '/my/account#issue-ical-preferences'
+  end
+
+  test 'closed issues option is saved from my account' do
+    log_user('jsmith', 'jsmith')
+    put '/my/account', params: { user: { firstname: 'John' }, pref: { issue_ical_closed: 'hide' } }
+    assert_redirected_to '/my/account'
+    assert_equal 'hide', User.find(2).pref.issue_ical_closed
+    get '/my/account'
+    assert_select '#issue-ical-preferences input[value=hide][checked=checked]'
   end
 
   test 'issues sidebar opens the personal and project feeds' do

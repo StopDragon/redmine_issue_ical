@@ -16,6 +16,11 @@
     <%= link_to l(:label_issue_ical_open_webcal), webcal_url %>
     <%= link_to l(:label_issue_ical_add_google), google_url, target: '_blank', rel: 'noopener noreferrer' %>
   </p>
+  <p class="info">
+    <%= l(:text_issue_ical_closed_setting,
+          value: l(User.current.pref.issue_ical_hide_closed? ? :label_issue_ical_closed_hide : :label_issue_ical_closed_mark)) %>
+    <%= link_to l(:label_issue_ical_change_setting), my_account_path(anchor: 'issue-ical-preferences') %>
+  </p>
   <p class="info"><%= l(:text_issue_ical_key_warning) %></p>
   <p class="buttons">
     <input type="button" value="<%= l(:button_close) %>" onclick="hideModal(this);" />

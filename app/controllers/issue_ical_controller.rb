@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 # Serves issues as an iCalendar feed:
-#   /issue_ical/my.ics?key=ATOM_KEY                  open issues assigned to me (or my groups)
-#   /projects/:project_id/issue_ical.ics?key=ATOM_KEY open issues of a project
+#   /issue_ical/my.ics?key=ATOM_KEY                  issues assigned to me (or my groups)
+#   /projects/:project_id/issue_ical.ics?key=ATOM_KEY issues of a project
+#
+# Closed issues are kept with a check mark, or left out, depending on the
+# user's preference (My account > Preferences).
 #
 # Calendar apps cannot log in, so the feed accepts the user's Atom access key,
 # the same key Redmine uses for its Atom feeds. Results go through
@@ -54,10 +57,11 @@ class IssueIcalController < ApplicationController
 
   def feed_scope
     table = Issue.table_name
-    scope = Issue.visible.open
+    scope = Issue.visible
                  .where("#{table}.start_date IS NOT NULL OR #{table}.due_date IS NOT NULL")
                  .preload(:project, :tracker, :status, :priority, :assigned_to)
                  .order("#{table}.id DESC") # over the cap, the oldest issues are left out
+    scope = scope.open if User.current.pref.issue_ical_hide_closed?
     if @project
       scope.where(@project.project_condition(Setting.display_subprojects_issues?))
     else
@@ -76,13 +80,20 @@ class IssueIcalController < ApplicationController
   def to_event(issue)
     RedmineIssueIcal::CalendarBuilder::Event.new(
       uid: "redmine-issue-#{issue.id}@#{request.host}",
-      summary: "[#{issue.project.name}] #{issue.tracker.name} ##{issue.id}: #{issue.subject}",
+      summary: summary_for(issue),
       description: description_for(issue),
       url: issue_url(issue),
       start_date: issue.start_date,
       due_date: issue.due_date,
       updated_at: issue.updated_on
     )
+  end
+
+  CLOSED_MARK = "\u2714 " # check mark
+
+  def summary_for(issue)
+    summary = "[#{issue.project.name}] #{issue.tracker.name} ##{issue.id}: #{issue.subject}"
+    issue.closed? ? CLOSED_MARK + summary : summary
   end
 
   def description_for(issue)
