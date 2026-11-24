@@ -70,11 +70,13 @@ class IssueIcalController < ApplicationController
     end
   end
 
+  # Default name calendar apps show when subscribing, in the user's language:
+  # "Issues" / "일감" for the personal feed, "Issues of <project>" for a project.
   def calendar_name
     if @project
-      "#{Setting.app_title} - #{@project.name}"
+      l(:label_issue_ical_project_issues, project: @project.name)
     else
-      "#{Setting.app_title} - #{l(:label_issue_ical_my_issues)}"
+      l(:label_issue_plural)
     end
   end
 

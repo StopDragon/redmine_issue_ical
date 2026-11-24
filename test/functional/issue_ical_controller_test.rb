@@ -23,6 +23,7 @@ class IssueIcalControllerTest < Redmine::ControllerTest
 
   test 'my feed with the atom key lists issues assigned to the user' do
     body = feed_body(key: User.find(2).atom_key)
+    assert_includes body, "X-WR-CALNAME:Issues\r\n"
     assert_includes body, 'UID:redmine-issue-4@'
     assert_includes body, "DTSTART;VALUE=DATE:20261201\r\n"
     assert_includes body, "DTEND;VALUE=DATE:20261204\r\n"
@@ -107,6 +108,13 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     assert_not_includes body, 'UID:redmine-issue-4@'
   end
 
+  test 'calendar name follows the user language' do
+    user = User.find(2)
+    user.update_column(:language, 'ko')
+    body = feed_body(key: user.atom_key)
+    assert_includes body, "X-WR-CALNAME:\uC77C\uAC10\r\n" # 일감
+  end
+
   test 'feed without a key requires login' do
     get :index, params: { format: 'ics' }
     assert_response :unauthorized
@@ -130,7 +138,7 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     assert_includes body, 'UID:redmine-issue-1@'
     assert_includes body, 'UID:redmine-issue-3@'
     assert_not_includes body, 'UID:redmine-issue-4@' # other project
-    assert_includes body, 'X-WR-CALNAME:Redmine - eCookbook'
+    assert_includes body, 'X-WR-CALNAME:Issues of eCookbook'
   end
 
   test 'project feed is denied without view_issues permission' do

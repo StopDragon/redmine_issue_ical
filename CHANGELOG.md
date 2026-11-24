@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 (2026-11-25)
+
+- Shorter default calendar names in the user's language: *Issues* (Korean: 일감) for the personal feed and *Issues of <project>* for a project feed, instead of `<app title> - My issues`. Calendar apps such as Apple Calendar use this name when you subscribe.
+
 ## 0.4.0 (2026-11-25)
 
 - The preference became *Calendar status display* with five choices: ✔ on closed (default), O closed / X open, status name on every issue, no marker, or hide closed issues. A choice saved in 0.3.0 carries over.

@@ -75,6 +75,10 @@ Each user chooses under *My account → Preferences → Calendar status display*
 
 The preference is read every time the feed is fetched, so existing subscriptions follow a change without subscribing again (at the next refresh). It applies to both the personal and the project feeds of that user. "Closed" means a status marked *Issue closed* in Redmine's status settings. The **Change** link in the subscribe dialog jumps to this setting.
 
+### Calendar name
+
+The feed suggests a calendar name in the user's language: **Issues** (Korean: **일감**) for the personal feed and **Issues of <project>** (Korean: **<project> 일감**) for a project feed. Apple Calendar and most other apps use it as the default when you subscribe, and you can rename the calendar in the app.
+
 ### Refresh interval
 
 The calendar app decides how often it reloads the feed. The feed suggests one hour, but Google Calendar may take up to about a day and Outlook several hours. Apple Calendar lets you choose the interval.
