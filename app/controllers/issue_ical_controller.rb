@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 # Serves issues as an iCalendar feed:
-#   /issue_ical/my.ics?key=ATOM_KEY                  issues assigned to me (or my groups)
+#   /issue_ical/my.ics?key=ATOM_KEY                  issues assigned to me (or my groups),
+#                                                     plus watched issues if I chose so
 #   /projects/:project_id/issue_ical.ics?key=ATOM_KEY issues of a project
 #
 # How issue status is shown (check mark, O/X, status name, nothing) and
@@ -66,7 +67,13 @@ class IssueIcalController < ApplicationController
     if @project
       scope.where(@project.project_condition(Setting.display_subprojects_issues?))
     else
-      scope.where(assigned_to_id: [User.current.id] + User.current.group_ids)
+      principal_ids = [User.current.id] + User.current.group_ids
+      if User.current.pref.issue_ical_watched
+        watched = Watcher.where(watchable_type: 'Issue', user_id: principal_ids).select(:watchable_id)
+        scope.where(assigned_to_id: principal_ids).or(scope.where(id: watched))
+      else
+        scope.where(assigned_to_id: principal_ids)
+      end
     end
   end
 

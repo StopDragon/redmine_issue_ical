@@ -11,6 +11,8 @@ ko:
   label_issue_ical_display_status: "상태 이름 (예: [진행])"
   label_issue_ical_display_plain: "표시 없음"
   label_issue_ical_display_hide: "완료 일감 빼기"
+  label_issue_ical_my_feed: "캘린더 내 일감"
+  label_issue_ical_include_watched: "관찰 중인 일감 포함"
   label_issue_ical_change_setting: "설정 바꾸기"
   text_issue_ical_display_setting: "상태 표시: %{value}."
   button_issue_ical_copy: "복사"

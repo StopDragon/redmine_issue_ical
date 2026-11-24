@@ -7,7 +7,7 @@ Every issue with a start date or a due date becomes an all-day event that spans 
 
 ## Features
 
-- **My issues** feed: issues assigned to you or to one of your groups, across all projects.
+- **My issues** feed: issues assigned to you or to one of your groups, across all projects — optionally also the issues you watch.
 - **Project** feed: issues of one project (subprojects follow the *Display subprojects issues on main projects by default* setting).
 - Uses Redmine permissions: a feed never shows an issue the user cannot see in Redmine.
 - Authenticates with the user's existing **Atom access key**, so no new credentials are needed and the key can be reset at any time.
@@ -75,6 +75,12 @@ Each user chooses under *My account → Preferences → Calendar status display*
 
 The preference is read every time the feed is fetched, so existing subscriptions follow a change without subscribing again (at the next refresh). It applies to both the personal and the project feeds of that user. "Closed" means a status marked *Issue closed* in Redmine's status settings. The **Change** link in the subscribe dialog jumps to this setting.
 
+### Watched issues (per-user preference)
+
+Redmine has a single assignee per issue. To follow work shared with several people, add them as watchers and turn on *My account → Preferences → Calendar: my issues → Include watched issues*. The personal feed then also lists issues you (or your groups) watch.
+
+It is off by default because Redmine automatically makes the author and commenters watchers (*Auto watch* in My account), so turning it on also brings in issues you created and handed over.
+
 ### Calendar name
 
 The feed suggests a calendar name in the user's language: **Issues** (Korean: **일감**) for the personal feed and **Issues of <project>** (Korean: **<project> 일감**) for a project feed. Apple Calendar and most other apps use it as the default when you subscribe, and you can rename the calendar in the app.
@@ -119,6 +125,7 @@ GNU General Public License v2.0 or later. See [LICENSE](LICENSE).
 Redmine 일감의 시작일·종료일을 캘린더 앱(Google 캘린더, Apple 캘린더, Outlook 등)에서 구독할 수 있게 해 주는 플러그인입니다. 시작일이나 종료일이 있는 일감이 시작일부터 종료일까지의 종일 일정으로 들어갑니다.
 
 - **내 일감**: 나 또는 내가 속한 그룹에 배정된 일감(전체 프로젝트)
+- **관찰 중인 일감**: **내 계정 → 설정 → 캘린더 내 일감 → 관찰 중인 일감 포함**을 켜면 내가 관찰자인 일감도 내 일감 캘린더에 들어갑니다(기본 꺼짐). Redmine은 담당자가 한 명이라, 함께 하는 사람은 관찰자로 넣으면 됩니다. 일감을 만든 사람과 댓글 단 사람은 자동으로 관찰자가 되므로, 켜면 내가 만든 일감도 함께 들어옵니다.
 - **프로젝트 일감**: 해당 프로젝트의 일감
 - **상태 표시**: 사용자마다 **내 계정 → 설정 → 캘린더 상태 표시**에서 고릅니다. 「완료에 ✔」(기본) / 「완료 O / 미완료 X」 / 「상태 이름 (예: [진행])」 / 「표시 없음」 / 「완료 일감 빼기」 중 하나이고, 다음 새로고침 때 반영됩니다. 이미 구독한 주소를 바꿀 필요는 없습니다. 구독 창의 **설정 바꾸기** 링크로 바로 갈 수 있습니다.
 - Redmine 권한을 그대로 따르므로 내가 볼 수 없는 일감은 나오지 않습니다.

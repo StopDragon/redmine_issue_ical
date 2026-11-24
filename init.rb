@@ -12,7 +12,7 @@ Redmine::Plugin.register :redmine_issue_ical do
   name 'Redmine Issue iCal'
   author 'StopDragon'
   description 'Subscribe to issue start and due dates from any calendar app (iCalendar / .ics feed).'
-  version '0.4.1'
+  version '0.5.0'
   url 'https://github.com/StopDragon/redmine_issue_ical'
   requires_redmine version_or_higher: '7.0.0'
 end
@@ -23,4 +23,4 @@ RedmineIssueIcal::Hooks
 unless UserPreference.included_modules.include?(RedmineIssueIcal::UserPreferencePatch)
   UserPreference.include RedmineIssueIcal::UserPreferencePatch
 end
-UserPreference.safe_attributes 'issue_ical_closed'
+UserPreference.safe_attributes 'issue_ical_closed', 'issue_ical_watched'

@@ -9,3 +9,9 @@
   </label>
   <% end %>
 </p>
+<p id="issue-ical-preferences-watched">
+  <label for="pref_issue_ical_watched"><%= l(:label_issue_ical_my_feed) %></label>
+  <%= hidden_field_tag 'pref[issue_ical_watched]', '0', id: nil %>
+  <%= check_box_tag 'pref[issue_ical_watched]', '1', user.pref.issue_ical_watched, id: 'pref_issue_ical_watched' %>
+  <%= l(:label_issue_ical_include_watched) %>
+</p>

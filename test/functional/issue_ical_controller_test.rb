@@ -115,6 +115,32 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     assert_includes body, "X-WR-CALNAME:\uC77C\uAC10\r\n" # 일감
   end
 
+  test 'watched issues are not in my feed by default' do
+    Watcher.find_or_create_by!(watchable: Issue.find(1), user: User.find(2))
+    body = feed_body(key: User.find(2).atom_key)
+    assert_not_includes body, 'UID:redmine-issue-1@'
+  end
+
+  test 'watched issues are in my feed when the user chose so' do
+    Watcher.find_or_create_by!(watchable: Issue.find(1), user: User.find(2))
+    user = User.find(2)
+    user.pref.issue_ical_watched = '1'
+    user.pref.save!
+    body = feed_body(key: user.atom_key)
+    assert_includes body, 'UID:redmine-issue-1@' # watched
+    assert_includes body, 'UID:redmine-issue-4@' # still assigned
+    assert_not_includes body, 'UID:redmine-issue-3@' # neither
+  end
+
+  test 'watched issues the user can no longer see stay out' do
+    Watcher.find_or_create_by!(watchable: Issue.find(4), user: User.find(3)) # project 2, dlopper is not a member
+    user = User.find(3)
+    user.pref.issue_ical_watched = '1'
+    user.pref.save!
+    body = feed_body(key: user.atom_key)
+    assert_not_includes body, 'UID:redmine-issue-4@'
+  end
+
   test 'feed without a key requires login' do
     get :index, params: { format: 'ics' }
     assert_response :unauthorized
@@ -203,14 +229,16 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
     assert_select '#issue-ical-preferences input[type=radio][value=hide]'
     assert_select '#issue-ical-modal-my a[href$=?]', '/my/account#issue-ical-preferences'
     assert_select '#issue-ical-preferences input[type=radio]', 5
+    assert_select 'input[type=checkbox]#pref_issue_ical_watched:not([checked])'
     assert_select '#issue-ical-modal-my a.issue-ical-settings-link'
   end
 
   test 'closed issues option is saved from my account' do
     log_user('jsmith', 'jsmith')
-    put '/my/account', params: { user: { firstname: 'John' }, pref: { issue_ical_closed: 'hide' } }
+    put '/my/account', params: { user: { firstname: 'John' }, pref: { issue_ical_closed: 'hide', issue_ical_watched: '1' } }
     assert_redirected_to '/my/account'
     assert_equal 'hide', User.find(2).pref.issue_ical_closed
+    assert User.find(2).pref.issue_ical_watched
     get '/my/account'
     assert_select '#issue-ical-preferences input[value=hide][checked=checked]'
   end

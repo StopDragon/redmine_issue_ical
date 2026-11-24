@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0 (2026-11-25)
+
+- New per-user option *My account → Preferences → Calendar: my issues → Include watched issues* (off by default). When on, the personal feed also lists issues you (or your groups) watch, so work shared with several people can be followed even though Redmine has a single assignee. Off by default because Redmine automatically makes authors and commenters watchers.
+
 ## 0.4.1 (2026-11-25)
 
 - Shorter default calendar names in the user's language: *Issues* (Korean: 일감) for the personal feed and *Issues of <project>* for a project feed, instead of `<app title> - My issues`. Calendar apps such as Apple Calendar use this name when you subscribe.

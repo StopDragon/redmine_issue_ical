@@ -9,6 +9,9 @@ module RedmineIssueIcal
   #   plain  - no marker; closed issues stay as they are
   #   hide   - no marker; closed issues are left out
   # The preference key keeps its 0.3.0 name so saved choices carry over.
+  #
+  # issue_ical_watched: also put issues the user watches in the personal
+  # feed (off by default, because Redmine makes authors watchers).
   module UserPreferencePatch
     CLOSED_OPTIONS = %w[mark ox status plain hide].freeze
     CLOSED_DEFAULT = 'mark'
@@ -24,6 +27,14 @@ module RedmineIssueIcal
 
     def issue_ical_hide_closed?
       issue_ical_closed == 'hide'
+    end
+
+    def issue_ical_watched
+      self[:issue_ical_watched].to_s == '1'
+    end
+
+    def issue_ical_watched=(value)
+      self[:issue_ical_watched] = ['1', 'true', true].include?(value) ? '1' : '0'
     end
   end
 end

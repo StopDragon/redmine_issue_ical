@@ -20,7 +20,18 @@ class UserPreferencePatchTest < ActiveSupport::TestCase
     assert_equal 'mark', pref.issue_ical_closed
   end
 
-  test 'is a safe attribute' do
-    assert_includes UserPreference.new.safe_attribute_names(User.new), 'issue_ical_closed'
+  test 'watched issues are off by default and can be turned on' do
+    pref = UserPreference.new
+    assert_not pref.issue_ical_watched
+    pref.issue_ical_watched = '1'
+    assert pref.issue_ical_watched
+    pref.issue_ical_watched = '0'
+    assert_not pref.issue_ical_watched
+  end
+
+  test 'are safe attributes' do
+    names = UserPreference.new.safe_attribute_names(User.new)
+    assert_includes names, 'issue_ical_closed'
+    assert_includes names, 'issue_ical_watched'
   end
 end

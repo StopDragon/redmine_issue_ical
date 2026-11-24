@@ -11,6 +11,8 @@ en:
   label_issue_ical_display_status: "Status name (e.g. [New])"
   label_issue_ical_display_plain: "No marker"
   label_issue_ical_display_hide: "Hide closed issues"
+  label_issue_ical_my_feed: "Calendar: my issues"
+  label_issue_ical_include_watched: "Include watched issues"
   label_issue_ical_change_setting: "Change"
   text_issue_ical_display_setting: "Status display: %{value}."
   button_issue_ical_copy: "Copy"
