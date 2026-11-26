@@ -17,7 +17,7 @@
 <%= render partial: 'issue_ical/modal',
            locals: { modal_id: 'issue-ical-modal-project',
                      title: "#{l(:label_issue_ical_subscribe)} - #{l(:label_issue_ical_project_issues, project: @project.name)}",
-                     trackers: @project.rolled_up_trackers(Setting.display_subprojects_issues?).to_a,
+                     trackers: @project.rolled_up_trackers(Setting.display_subprojects_issues?).visible.to_a,
                      feed_url: ->(tracker) { project_issue_ical_url(@project, format: 'ics', key: User.current.atom_key, **(tracker ? { tracker_id: tracker.id } : {})) } } %>
 <% end %>
 <% end %>

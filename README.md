@@ -36,7 +36,7 @@ No migration is needed. To uninstall, delete the `plugins/redmine_issue_ical` di
    - click **Open in Apple Calendar / Outlook** or **Add to Google Calendar**, or
    - click **Copy** and add the URL to your calendar app as a calendar *from URL* / *subscription*.
 
-To get one calendar per tracker, pick a tracker in the dialog's *Tracker* list before subscribing, and repeat for each tracker you want. Each becomes a separate calendar (named e.g. *Issues - Bug*) that you can color or hide on its own in the calendar app. *All trackers* keeps everything in one calendar.
+To get one calendar per tracker, pick a tracker in the dialog's *Tracker* list before subscribing, and repeat for each tracker you want. Each becomes a separate calendar (named e.g. *Issues - Bug*) that you can color or hide on its own in the calendar app. *All trackers* keeps everything in one calendar; if you switch to per-tracker calendars, remove the old all-trackers subscription or every issue shows twice.
 
 Do not download the `.ics` file and import it: an imported file is a one-time copy and never updates. Subscribe to the URL instead.
 
@@ -131,7 +131,7 @@ Redmine 일감의 시작일·종료일을 캘린더 앱(Google 캘린더, Apple 
 - **내 일감**: 나 또는 내가 속한 그룹에 배정된 일감(전체 프로젝트)
 - **관찰 중인 일감**: **내 계정 → 설정 → 캘린더 내 일감 → 관찰 중인 일감 포함**을 켜면 내가 관찰자인 일감도 내 일감 캘린더에 들어갑니다(기본 꺼짐). Redmine은 담당자가 한 명이라, 함께 하는 사람은 관찰자로 넣으면 됩니다. 일감을 만든 사람과 댓글 단 사람은 자동으로 관찰자가 되므로, 켜면 내가 만든 일감도 함께 들어옵니다.
 - **프로젝트 일감**: 해당 프로젝트의 일감
-- **유형별 캘린더**: 구독 창의 **유형** 목록에서 버그·기능 같은 유형을 고르면 그 유형만 담긴 주소가 됩니다. 유형마다 따로 구독하면 캘린더 앱에서 유형별로 색을 다르게 하거나 켜고 끌 수 있습니다(캘린더 이름 예: 「일감 - 버그」). 「모든 유형」은 지금처럼 하나로 받습니다.
+- **유형별 캘린더**: 구독 창의 **유형** 목록에서 버그·기능 같은 유형을 고르면 그 유형만 담긴 주소가 됩니다. 유형마다 따로 구독하면 캘린더 앱에서 유형별로 색을 다르게 하거나 켜고 끌 수 있습니다(캘린더 이름 예: 「일감 - 버그」). 「모든 유형」은 지금처럼 하나로 받습니다. 유형별로 바꿔 구독하면 기존 「모든 유형」 구독은 지워야 일정이 두 번 나오지 않습니다.
 - **상태 표시**: 사용자마다 **내 계정 → 설정 → 캘린더 상태 표시**에서 고릅니다. 「완료에 ✔」(기본) / 「완료 O / 미완료 X」 / 「상태 이름 (예: [진행])」 / 「표시 없음」 / 「완료 일감 빼기」 중 하나이고, 다음 새로고침 때 반영됩니다. 이미 구독한 주소를 바꿀 필요는 없습니다. 구독 창의 **설정 바꾸기** 링크로 바로 갈 수 있습니다.
 - Redmine 권한을 그대로 따르므로 내가 볼 수 없는 일감은 나오지 않습니다.
 - 인증은 기존 **Atom 접근키**를 씁니다. 따로 비밀번호를 만들지 않아도 됩니다.
