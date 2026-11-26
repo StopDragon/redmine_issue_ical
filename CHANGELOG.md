@@ -3,6 +3,7 @@
 ## 0.6.0 (2026-11-26)
 
 - Feeds per tracker: the subscribe dialog has a *Tracker* picker (*All trackers* or one tracker). Picking a tracker changes the URL and the subscribe links to a calendar of only that tracker, so each tracker can be subscribed to separately and colored or toggled in the calendar app. Works for both the personal and the project feeds (`tracker_id=N` in the URL); the calendar is named e.g. *Issues - Bug*.
+- The picker lists only the trackers whose issues you can see; a project feed lists the trackers of that project (and of its subprojects when they are shown). An unknown or hidden tracker in the URL returns 404.
 
 ## 0.5.0 (2026-11-25)
 

@@ -12,12 +12,12 @@ Every issue with a start date or a due date becomes an all-day event that spans 
 - **Per tracker**: either feed can be limited to one tracker (Bug, Feature, ...), so each tracker can be its own calendar.
 - Uses Redmine permissions: a feed never shows an issue the user cannot see in Redmine.
 - Authenticates with the user's existing **Atom access key**, so no new credentials are needed and the key can be reset at any time.
-- A **Calendar subscription** button on the *My account* page and links in the issue list sidebar open a dialog with the feed URL, a **Copy** button, and one-click subscribe links for Apple Calendar / Outlook (`webcal://`) and Google Calendar.
+- A **Calendar subscription** button on the *My account* page and links in the issue list sidebar open a dialog with a **Tracker** picker, the feed URL, a **Copy** button, and one-click subscribe links for Apple Calendar / Outlook (`webcal://`) and Google Calendar.
 - No extra gems and no database migrations.
 
 ## Requirements
 
-- Redmine 7.0 or later (tested with Redmine 7.0.3, Ruby 4.0, Rails 8.1)
+- Redmine 7.0 or later (tested with Redmine 7.0.3 on Ruby 4.0 and on Ruby 3.3, Rails 8.1)
 
 ## Installation
 
@@ -32,11 +32,12 @@ No migration is needed. To uninstall, delete the `plugins/redmine_issue_ical` di
 ## Usage
 
 1. Open *My account* and click **Calendar subscription**, or click **My issues** / **Issues of …** under *Calendar subscription* in the issue list sidebar.
-2. In the dialog, either
+2. In the dialog, optionally pick a tracker in the *Tracker* list (see below).
+3. Then either
    - click **Open in Apple Calendar / Outlook** or **Add to Google Calendar**, or
    - click **Copy** and add the URL to your calendar app as a calendar *from URL* / *subscription*.
 
-To get one calendar per tracker, pick a tracker in the dialog's *Tracker* list before subscribing, and repeat for each tracker you want. Each becomes a separate calendar (named e.g. *Issues - Bug*) that you can color or hide on its own in the calendar app. *All trackers* keeps everything in one calendar; if you switch to per-tracker calendars, remove the old all-trackers subscription or every issue shows twice.
+To get one calendar per tracker, pick a tracker in the dialog's *Tracker* list before subscribing, and repeat for each tracker you want. The list shows the trackers whose issues you can see (for a project feed, the trackers of that project). Each becomes a separate calendar (named e.g. *Issues - Bug*) that you can color or hide on its own in the calendar app. *All trackers* keeps everything in one calendar; if you switch to per-tracker calendars, remove the old all-trackers subscription or every issue shows twice.
 
 Do not download the `.ics` file and import it: an imported file is a one-time copy and never updates. Subscribe to the URL instead.
 
@@ -139,7 +140,8 @@ Redmine 일감의 시작일·종료일을 캘린더 앱(Google 캘린더, Apple 
 ### 사용법
 
 1. **내 계정** 오른쪽 위 **캘린더 구독** 버튼, 또는 일감 목록 사이드바의 **캘린더 구독 → 내 일감 / ○○ 일감**을 누릅니다.
-2. 뜨는 창에서
+2. 뜨는 창에서, 유형별로 받으려면 **유형** 목록에서 유형을 고릅니다(볼 수 있는 유형만 나오고, 프로젝트 일감 창에는 그 프로젝트의 유형만 나옵니다).
+3. 그다음
    - **Apple 캘린더·Outlook으로 열기** 또는 **Google 캘린더에 추가**를 누르거나,
    - **복사**를 눌러 주소를 캘린더 앱에 **URL로 구독**(Google 캘린더: 다른 캘린더 → URL로 추가)합니다.
 
