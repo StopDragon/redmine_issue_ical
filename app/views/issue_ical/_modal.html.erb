@@ -1,20 +1,40 @@
 <%
-  webcal_url = url.sub(/\Ahttps?:/, 'webcal:')
-  google_url = "https://calendar.google.com/calendar/r?cid=#{ERB::Util.url_encode(webcal_url)}"
+  # One feed for all trackers, plus one per tracker. Picking a tracker swaps
+  # the URL and the subscribe links, so each tracker becomes its own calendar.
+  issue_ical_links = lambda do |url|
+    webcal = url.sub(/\Ahttps?:/, 'webcal:')
+    { url: url, webcal: webcal,
+      google: "https://calendar.google.com/calendar/r?cid=#{ERB::Util.url_encode(webcal)}" }
+  end
+  feeds = [[l(:label_tracker_all), issue_ical_links.call(feed_url.call(nil))]] +
+          trackers.map { |tracker| [tracker.name, issue_ical_links.call(feed_url.call(tracker))] }
+  links = feeds.first[1]
 %>
 <div id="<%= modal_id %>" class="issue-ical-modal" style="display:none;">
   <h3 class="title"><%= title %></h3>
   <p><%= l(:text_issue_ical_intro) %></p>
+  <% if feeds.size > 1 %>
+  <p class="issue-ical-tracker">
+    <label for="<%= modal_id %>-tracker"><%= l(:field_tracker) %></label>
+    <select id="<%= modal_id %>-tracker" class="issue-ical-tracker-select">
+      <% feeds.each do |name, feed| %>
+      <option value="<%= feed[:url] %>" data-webcal="<%= feed[:webcal] %>" data-google="<%= feed[:google] %>"><%= name %></option>
+      <% end %>
+    </select>
+    <em class="info"><%= l(:text_issue_ical_tracker_hint) %></em>
+  </p>
+  <% end %>
   <div class="issue-ical-url">
-    <input type="text" readonly="readonly" value="<%= url %>" class="issue-ical-url-input"
+    <input type="text" readonly="readonly" value="<%= links[:url] %>" class="issue-ical-url-input"
            aria-label="<%= l(:label_issue_ical_feed_url) %>" />
     <button type="button" class="issue-ical-copy"
             data-label="<%= l(:button_issue_ical_copy) %>"
             data-done-label="<%= l(:text_issue_ical_copied) %>"><%= l(:button_issue_ical_copy) %></button>
   </div>
   <p class="issue-ical-apps">
-    <%= link_to l(:label_issue_ical_open_webcal), webcal_url %>
-    <%= link_to l(:label_issue_ical_add_google), google_url, target: '_blank', rel: 'noopener noreferrer' %>
+    <%= link_to l(:label_issue_ical_open_webcal), links[:webcal], class: 'issue-ical-webcal' %>
+    <%= link_to l(:label_issue_ical_add_google), links[:google], class: 'issue-ical-google',
+                target: '_blank', rel: 'noopener noreferrer' %>
   </p>
   <p class="info">
     <%= l(:text_issue_ical_display_setting,
@@ -33,6 +53,8 @@
   .issue-ical-url { display: flex; gap: 6px; margin: 10px 0; }
   .issue-ical-url input { flex: 1; min-width: 0; font-family: monospace; }
   .issue-ical-apps a { margin-right: 14px; }
+  .issue-ical-tracker label { margin-right: 6px; }
+  .issue-ical-tracker em.info { display: block; }
   #issue-ical-preferences.issue-ical-highlight { background: #ffffcc; transition: background 1s; }
 </style>
 <%= javascript_tag do %>
@@ -55,6 +77,13 @@
     }
   });
   $(document).on('focus click', '.issue-ical-url-input', function() { this.select(); });
+  $(document).on('change', '.issue-ical-tracker-select', function() {
+    var option = this.options[this.selectedIndex];
+    var modal = $(this).closest('.issue-ical-modal');
+    modal.find('.issue-ical-url-input').val(option.value);
+    modal.find('a.issue-ical-webcal').attr('href', option.dataset.webcal);
+    modal.find('a.issue-ical-google').attr('href', option.dataset.google);
+  });
   // On My account the settings are on the same page: a plain #anchor link
   // would leave the dialog open on top, so close it and scroll instead.
   var showSettings = function() {

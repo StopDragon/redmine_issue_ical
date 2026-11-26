@@ -5,6 +5,9 @@
 #                                                     plus watched issues if I chose so
 #   /projects/:project_id/issue_ical.ics?key=ATOM_KEY issues of a project
 #
+# Either feed takes an optional tracker_id=N to list only issues of that
+# tracker, so each tracker can be subscribed to as its own calendar.
+#
 # How issue status is shown (check mark, O/X, status name, nothing) and
 # whether closed issues are left out follow the user's preference
 # (My account > Preferences).
@@ -17,6 +20,7 @@ class IssueIcalController < ApplicationController
 
   before_action :require_login
   before_action :find_feed_project
+  before_action :find_feed_tracker
 
   def self.max_issues
     MAX_ISSUES
@@ -29,7 +33,7 @@ class IssueIcalController < ApplicationController
     send_data calendar,
               type: 'text/calendar; charset=utf-8',
               disposition: 'inline',
-              filename: @project ? "#{@project.identifier}-issues.ics" : 'my-issues.ics'
+              filename: feed_filename
   end
 
   private
@@ -57,6 +61,20 @@ class IssueIcalController < ApplicationController
     render_404
   end
 
+  def find_feed_tracker
+    return if params[:tracker_id].blank?
+
+    @tracker = Tracker.visible.find(params[:tracker_id])
+  rescue ActiveRecord::RecordNotFound
+    render_404
+  end
+
+  def feed_filename
+    name = @project ? "#{@project.identifier}-issues" : 'my-issues'
+    name += "-tracker-#{@tracker.id}" if @tracker
+    "#{name}.ics"
+  end
+
   def feed_scope
     table = Issue.table_name
     scope = Issue.visible
@@ -64,6 +82,7 @@ class IssueIcalController < ApplicationController
                  .preload(:project, :tracker, :status, :priority, :assigned_to)
                  .order("#{table}.id DESC") # over the cap, the oldest issues are left out
     scope = scope.open if User.current.pref.issue_ical_hide_closed?
+    scope = scope.where(tracker_id: @tracker.id) if @tracker
     if @project
       scope.where(@project.project_condition(Setting.display_subprojects_issues?))
     else
@@ -78,13 +97,16 @@ class IssueIcalController < ApplicationController
   end
 
   # Default name calendar apps show when subscribing, in the user's language:
-  # "Issues" / "일감" for the personal feed, "Issues of <project>" for a project.
+  # "Issues" / "일감" for the personal feed, "Issues of <project>" for a project,
+  # followed by " - <tracker>" for a single-tracker feed.
   def calendar_name
-    if @project
-      l(:label_issue_ical_project_issues, project: @project.name)
-    else
-      l(:label_issue_plural)
-    end
+    name =
+      if @project
+        l(:label_issue_ical_project_issues, project: @project.name)
+      else
+        l(:label_issue_plural)
+      end
+    @tracker ? "#{name} - #{@tracker.name}" : name
   end
 
   def to_event(issue)

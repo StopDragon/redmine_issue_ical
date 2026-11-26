@@ -141,6 +141,27 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     assert_not_includes body, 'UID:redmine-issue-4@'
   end
 
+  test 'my feed can be limited to one tracker' do
+    body = feed_body(key: User.find(3).atom_key, tracker_id: 1)
+    assert_includes body, 'UID:redmine-issue-3@' # Bug
+    assert_not_includes body, 'UID:redmine-issue-2@' # Feature request
+    assert_includes body, "X-WR-CALNAME:Issues - Bug\r\n"
+    assert_match(/filename="my-issues-tracker-1\.ics"/, response.headers['Content-Disposition'])
+  end
+
+  test 'project feed can be limited to one tracker' do
+    body = feed_body(project_id: 'ecookbook', key: User.find(2).atom_key, tracker_id: 2)
+    assert_includes body, 'UID:redmine-issue-2@' # Feature request
+    assert_not_includes body, 'UID:redmine-issue-1@' # Bug
+    assert_not_includes body, 'UID:redmine-issue-3@' # Bug
+    assert_includes body, 'X-WR-CALNAME:Issues of eCookbook - Feature request'
+  end
+
+  test 'feed returns 404 for an unknown tracker' do
+    get :index, params: { format: 'ics', key: User.find(2).atom_key, tracker_id: 999 }
+    assert_response :not_found
+  end
+
   test 'feed without a key requires login' do
     get :index, params: { format: 'ics' }
     assert_response :unauthorized
@@ -250,6 +271,17 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
     assert_select 'ul.issue-ical-links a', 2
     assert_select '#issue-ical-modal-my input[value*=?]', '/issue_ical/my.ics?key='
     assert_select '#issue-ical-modal-project input[value*=?]', '/projects/ecookbook/issue_ical.ics?key='
+  end
+
+  test 'subscribe dialog offers one feed per tracker' do
+    log_user('jsmith', 'jsmith')
+    get '/projects/ecookbook/issues'
+    assert_select '#issue-ical-modal-my select.issue-ical-tracker-select' do
+      assert_select 'option:first-child', text: 'All trackers'
+      assert_select 'option[value*=?]', 'tracker_id=1'
+    end
+    assert_select '#issue-ical-modal-my input.issue-ical-url-input[value*=?]', 'tracker_id', 0
+    assert_select '#issue-ical-modal-project option[value*=?][data-webcal^=?]', 'tracker_id=2', 'webcal://'
   end
 
   test 'anonymous users see no feed links' do

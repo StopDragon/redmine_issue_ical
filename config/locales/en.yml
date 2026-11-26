@@ -19,3 +19,4 @@ en:
   text_issue_ical_copied: "Copied"
   text_issue_ical_intro: "Subscribe to this URL in your calendar app (add calendar from URL). Issue start and due dates show up as all-day events and are refreshed by the app."
   text_issue_ical_key_warning: "The URL contains your Atom access key, which also opens all of your Atom feeds. Keep it private and reset the key under My account if it leaks."
+  text_issue_ical_tracker_hint: "Pick a tracker to get a calendar of only that tracker. Subscribe to each tracker separately to color or toggle them in your calendar app."

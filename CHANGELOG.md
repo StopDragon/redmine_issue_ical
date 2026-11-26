@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0 (2026-11-26)
+
+- Feeds per tracker: the subscribe dialog has a *Tracker* picker (*All trackers* or one tracker). Picking a tracker changes the URL and the subscribe links to a calendar of only that tracker, so each tracker can be subscribed to separately and colored or toggled in the calendar app. Works for both the personal and the project feeds (`tracker_id=N` in the URL); the calendar is named e.g. *Issues - Bug*.
+
 ## 0.5.0 (2026-11-25)
 
 - New per-user option *My account → Preferences → Calendar: my issues → Include watched issues* (off by default). When on, the personal feed also lists issues you (or your groups) watch, so work shared with several people can be followed even though Redmine has a single assignee. Off by default because Redmine automatically makes authors and commenters watchers.
