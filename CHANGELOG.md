@@ -3,6 +3,7 @@
 ## 0.7.0 (2026-11-27)
 
 - Start and end times: pick two issue custom fields (format Text, e.g. `09:30`) under *Administration → Plugins → Configure*. Issues with a start time become timed events from the start date at the start time to the due date at the end time (when the end time is empty, it ends one hour after the start time on the due date); others stay all-day. Times are read in the user's time zone, else the one set for the plugin, else the server's, and sent in UTC. As on the issue page, values of fields not enabled for the issue's project and tracker, or hidden from the user by role, are not used. `09:30:00` and a full-width colon are accepted.
+- Client in the title: pick a project custom field as the client in the plugin settings, and event titles read `Client-Subject(#123)` (or `Subject(#123)` without a client) instead of `[Project] Tracker #123: Subject`.
 - Location: a third custom field picked in the same settings is sent as the event location.
 - Timed events of a priority above the default one (High, Urgent, Immediate in a stock Redmine) show as busy in the calendar; all-day events and other priorities stay free.
 - On the issue form the time fields get the colon added for you: `930` or `0930` becomes `09:30` when you leave the field or save.

@@ -23,6 +23,8 @@ ko:
   label_issue_ical_start_time_field: "시작 시간 필드"
   label_issue_ical_end_time_field: "종료 시간 필드"
   label_issue_ical_location_field: "장소 필드"
+  label_issue_ical_client_field: "클라이언트 필드 (프로젝트)"
+  text_issue_ical_client_field_hint: "일정 제목이 \"클라이언트-일감 제목(#123)\"이 되고, 클라이언트가 비어 있는 프로젝트는 \"일감 제목(#123)\"이 됩니다. 고르지 않으면 \"[프로젝트] 유형 #123: 일감 제목\"입니다."
   label_issue_ical_time_zone: "시간의 기준 시간대"
   label_issue_ical_time_zone_server: "서버 시간대 (%{zone})"
   text_issue_ical_time_fields_intro: "09:30 같은 시작·종료 시간을 담은 일감 사용자 정의 필드(형식: 문자열)를 고르세요. 시작 시간이 있는 일감은 시작일 시작 시간부터 완료기한 종료 시간까지의 시간 일정이 되고, 나머지는 종일 일정으로 남습니다. 장소 필드는 일정의 장소로 들어갑니다."

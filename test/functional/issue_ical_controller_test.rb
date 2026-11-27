@@ -361,6 +361,47 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     end
   end
 
+  def client_field
+    ProjectCustomField.create!(name: 'Client', field_format: 'string', visible: true)
+  end
+
+  def summary_of_issue4
+    feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')[/^SUMMARY:.*#4\).*$/]
+  end
+
+  test 'with a client field the title is client-subject(#id)' do
+    field = client_field
+    CustomValue.create!(customized: Project.find(2), custom_field: field, value: 'Hi-M')
+    with_settings(plugin_redmine_issue_ical: { 'client_field_id' => field.id.to_s }) do
+      assert_equal "SUMMARY:Hi-M-#{Issue.find(4).subject}(#4)", summary_of_issue4
+    end
+  end
+
+  test 'without a client value the title is subject(#id)' do
+    field = client_field
+    with_settings(plugin_redmine_issue_ical: { 'client_field_id' => field.id.to_s }) do
+      assert_equal "SUMMARY:#{Issue.find(4).subject}(#4)", summary_of_issue4
+    end
+  end
+
+  test 'the status prefix still comes first with a client field' do
+    field = client_field
+    CustomValue.create!(customized: Project.find(2), custom_field: field, value: 'Hi-M')
+    User.find(2).pref.update!(issue_ical_closed: 'ox')
+    with_settings(plugin_redmine_issue_ical: { 'client_field_id' => field.id.to_s }) do
+      assert summary_of_issue4.start_with?('SUMMARY:X Hi-M-'), summary_of_issue4
+    end
+  end
+
+  test 'a client field the user may not see is not used' do
+    field = ProjectCustomField.create!(name: 'Client', field_format: 'string', visible: false,
+                                       role_ids: [Role.create!(name: 'Nobody client').id])
+    CustomValue.create!(customized: Project.find(2), custom_field: field, value: 'Secret client')
+    with_settings(plugin_redmine_issue_ical: { 'client_field_id' => field.id.to_s }) do
+      assert_equal "SUMMARY:#{Issue.find(4).subject}(#4)", summary_of_issue4
+    end
+  end
+
   test 'an invalid start time keeps the event all-day' do
     set_user_time_zone('Seoul')
     with_time_fields('soon', '18:00') do
@@ -448,6 +489,7 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
     assert_select 'select#settings_start_time_field_id option[value=?]', field.id.to_s
     assert_select 'select#settings_end_time_field_id'
     assert_select 'select#settings_location_field_id'
+    assert_select 'select#settings_client_field_id'
     assert_select 'select#settings_time_zone option[value=?]', 'Seoul'
   end
 

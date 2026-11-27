@@ -15,7 +15,9 @@
 # Issues get a start and end time and a location when the administrator
 # picked the custom fields holding them (Administration > Plugins >
 # Configure); without a start time they are all-day events. Issues of a
-# priority above the default one show as busy, the others as free.
+# priority above the default one show as busy, the others as free. When a
+# project custom field is picked as the client, event titles read
+# "<client>-<subject>(#<id>)" instead of "[<project>] <tracker> #<id>: <subject>".
 #
 # Calendar apps cannot log in, so the feed accepts the user's Atom access key,
 # the same key Redmine uses for its Atom feeds. Results go through
@@ -34,6 +36,7 @@ class IssueIcalController < ApplicationController
   def index
     issues = feed_scope.limit(self.class.max_issues).to_a
     values = field_values(issues)
+    @clients = client_names(issues)
     calendar = RedmineIssueIcal::CalendarBuilder.new(name: calendar_name)
                                                 .build(issues.map { |issue| to_event(issue, values[issue.id]) })
     send_data calendar,
@@ -210,7 +213,31 @@ class IssueIcalController < ApplicationController
   CHECK_MARK = "\u2714 "
 
   def summary_for(issue)
-    status_prefix(issue) + "[#{issue.project.name}] #{issue.tracker.name} ##{issue.id}: #{issue.subject}"
+    return status_prefix(issue) + "[#{issue.project.name}] #{issue.tracker.name} ##{issue.id}: #{issue.subject}" unless client_field
+
+    client = @clients[issue.project_id].to_s.strip
+    title = "#{issue.subject}(##{issue.id})"
+    status_prefix(issue) + (client.empty? ? title : "#{client}-#{title}")
+  end
+
+  # The project custom field the administrator picked as the client.
+  def client_field
+    return @client_field if defined?(@client_field)
+
+    id = plugin_settings['client_field_id'].to_s
+    @client_field = id == '' ? nil : ProjectCustomField.find_by(id: id)
+  end
+
+  # { project_id => client } in one query, for the projects whose client
+  # field the user may see.
+  def client_names(issues)
+    field = client_field
+    return {} unless field && issues.any?
+
+    projects = issues.map(&:project).uniq.select { |project| field.visible_by?(project, User.current) }
+    CustomValue.where(customized_type: 'Project', customized_id: projects.map(&:id), custom_field_id: field.id)
+               .where.not(value: [nil, '']).order(:id).pluck(:customized_id, :value)
+               .group_by(&:first).transform_values { |rows| rows.map(&:last).join(', ') }
   end
 
   def status_prefix(issue)
