@@ -60,6 +60,37 @@ class CalendarBuilderTest < ActiveSupport::TestCase
     assert_not_includes build(event), 'LOCATION'
   end
 
+  test 'adds one VALARM per distinct alarm' do
+    alarms = [RedmineIssueIcal::Alarm.parse('30분 전'), RedmineIssueIcal::Alarm.parse('1일 전'),
+              RedmineIssueIcal::Alarm.parse('30분 전')]
+    ics = build(event(start_at: Time.utc(2026, 12, 1, 5), end_at: Time.utc(2026, 12, 1, 6), alarms: alarms))
+    assert_equal 2, ics.scan('BEGIN:VALARM').size
+    assert_includes ics, "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:Task\r\nTRIGGER:-PT30M\r\nEND:VALARM\r\n"
+    assert_includes ics, "TRIGGER:-P1D\r\n"
+    assert ics.index('END:VALARM') < ics.index('END:VEVENT')
+  end
+
+  test 'all-day alarms count from 09:00' do
+    ics = build(event(alarms: [RedmineIssueIcal::Alarm.parse('1일 전')]))
+    assert_includes ics, "TRIGGER:-PT15H\r\n"
+  end
+
+  test 'none alone becomes an ACTION:NONE alarm' do
+    ics = build(event(alarms: [RedmineIssueIcal::Alarm.parse('없음')]))
+    assert_includes ics, "BEGIN:VALARM\r\nACTION:NONE\r\nTRIGGER;VALUE=DATE-TIME:19760401T005545Z\r\nEND:VALARM\r\n"
+    assert_equal 1, ics.scan('BEGIN:VALARM').size
+  end
+
+  test 'none next to a real alarm is dropped' do
+    ics = build(event(alarms: [RedmineIssueIcal::Alarm.parse('없음'), RedmineIssueIcal::Alarm.parse('정시')]))
+    assert_not_includes ics, 'ACTION:NONE'
+    assert_includes ics, "TRIGGER:PT9H\r\n"
+  end
+
+  test 'no VALARM without alarms' do
+    assert_not_includes build(event), 'VALARM'
+  end
+
   test 'skips events without any date' do
     ics = build(event(start_date: nil, due_date: nil))
     assert_not_includes ics, 'BEGIN:VEVENT'

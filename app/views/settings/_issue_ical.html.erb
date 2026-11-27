@@ -19,6 +19,16 @@
                  id: 'settings_location_field_id' %>
 </p>
 <p>
+  <label for="settings_alarm_field_id"><%= l(:label_issue_ical_alarm_field) %></label>
+  <%= select_tag 'settings[alarm_field_id]',
+                 options_for_select([[l(:label_none), '']] +
+                                    IssueCustomField.where(field_format: %w[list string]).sorted
+                                                    .map { |field| [field.name, field.id.to_s] },
+                                    @settings['alarm_field_id'].to_s),
+                 id: 'settings_alarm_field_id' %>
+  <em class="info"><%= l(:text_issue_ical_alarm_field_hint) %></em>
+</p>
+<p>
   <label for="settings_client_field_id"><%= l(:label_issue_ical_client_field) %></label>
   <%= select_tag 'settings[client_field_id]',
                  options_for_select([[l(:label_none), '']] +

@@ -8,7 +8,7 @@ module RedmineIssueIcal
   # Plain Ruby so it can be tested without a Redmine instance.
   class CalendarBuilder
     Event = Struct.new(:uid, :summary, :description, :url, :start_date, :due_date, :updated_at,
-                       :start_at, :end_at, :location, :busy, keyword_init: true)
+                       :start_at, :end_at, :location, :busy, :alarms, keyword_init: true)
 
     PRODID = '-//redmine_issue_ical//Redmine Issue iCal//EN'
     LINE_LIMIT = 75 # octets, excluding CRLF (RFC 5545 3.1)
@@ -63,7 +63,28 @@ module RedmineIssueIcal
       lines << "LAST-MODIFIED:#{utc(event.updated_at)}" if event.updated_at
       lines << "DESCRIPTION:#{escape(event.description)}" if event.description.to_s != ''
       lines << "URL:#{event.url}" if event.url.to_s != ''
+      lines.concat(alarm_lines(event))
       lines << 'END:VEVENT'
+    end
+
+    # RFC 9074 "no alarm": ACTION:NONE with a trigger long past. Calendar
+    # apps that know it (Apple Calendar writes the same) then add no default
+    # alarm of their own.
+    NO_ALARM_LINES = ['BEGIN:VALARM', 'ACTION:NONE', 'TRIGGER;VALUE=DATE-TIME:19760401T005545Z',
+                      'END:VALARM'].freeze
+
+    # One VALARM per distinct alarm (RFC 5545 3.6.6). "No alarm" counts only
+    # when nothing else is picked.
+    def alarm_lines(event)
+      alarms = Array(event.alarms).uniq
+      real = alarms.reject(&:none?)
+      return NO_ALARM_LINES.dup if real.empty? && alarms.any?
+
+      all_day = !(event.start_at && event.end_at)
+      real.flat_map do |alarm|
+        ['BEGIN:VALARM', 'ACTION:DISPLAY', "DESCRIPTION:#{escape(event.summary)}",
+         alarm.trigger(all_day: all_day), 'END:VALARM']
+      end
     end
 
     # Timed events are written in UTC so no VTIMEZONE block is needed.
