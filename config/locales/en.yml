@@ -23,6 +23,8 @@ en:
   label_issue_ical_start_time_field: "Start time field"
   label_issue_ical_end_time_field: "End time field"
   label_issue_ical_location_field: "Location field"
+  label_issue_ical_client_field: "Client field (project)"
+  text_issue_ical_client_field_hint: "Event titles become \"Client-Subject(#123)\", or \"Subject(#123)\" when the project has no client. Without this field: \"[Project] Tracker #123: Subject\"."
   label_issue_ical_time_zone: "Time zone of the times"
   label_issue_ical_time_zone_server: "Server time zone (%{zone})"
   text_issue_ical_time_fields_intro: "Pick the issue custom fields (format: Text) that hold a start and an end time such as 09:30. Issues with a start time become timed events from the start date at the start time to the due date at the end time; the others stay all-day. The location field is shown as the event location."

@@ -59,14 +59,14 @@ Feed URLs:
 | No dates | Not included |
 | Closed | Kept with a marker, or left out (per-user preference, see below) |
 
-- Title: `[Project] Tracker #123: Subject`
+- Title: `[Project] Tracker #123: Subject`, or `Client-Subject(#123)` when a project custom field is picked as the client (see below)
 - Description: the issue's own description as plain text, without Textile / Markdown markup (first 1000 characters), a blank line, then status, priority, assignee and % done (the issue link is sent as the event URL)
 - Events are marked as *free* (`TRANSP:TRANSPARENT`), so they do not block your availability, except timed events (see below) of a priority above the default one (in a stock Redmine: High, Urgent, Immediate), which are marked *busy* (`TRANSP:OPAQUE`). All-day events always stay free, so a long issue does not make you look busy for weeks.
 - At most 2,000 issues per feed.
 
 Redmine stores start and due dates without a time, so events are all-day unless you set up time fields (below).
 
-### Start and end times, location (optional)
+### Start and end times, location, client (optional)
 
 Redmine has no time or location field, so they are kept in issue custom fields:
 
@@ -85,6 +85,7 @@ Then:
 - `09:30:00` (seconds dropped) and a full-width colon `09：30` are accepted too. An end at or before the start becomes one hour from the start; a value that is not a time (e.g. `soon`) keeps the issue all-day.
 - Times are read in the user's time zone (*My account → Preferences*), else the time zone picked in the plugin settings, else the server's. They are sent in UTC, so every calendar app shows them in its own time zone.
 - The location field is sent as the event location (`LOCATION`). Apple Calendar can look an address up on the map; a meeting link works too.
+- **Client in the title**: pick a project custom field (format Text or List) as the *Client field* in the same settings. Titles then read `Client-Subject(#123)`, or `Subject(#123)` when the project has no client (or the user may not see the field). The status marker still comes first.
 - As on the issue page, a field value is not used when the field is not enabled for the issue's project and tracker, or the user may not see it (custom field visibility by role).
 - On the issue form, `930`, `0930` or `9` turns into `09:30` / `09:00` when you leave the field or save, so you do not need to type the colon.
 
