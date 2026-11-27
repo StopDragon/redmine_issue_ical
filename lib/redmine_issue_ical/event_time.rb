@@ -10,11 +10,13 @@ module RedmineIssueIcal
 
     module_function
 
-    # "09:30", "9:30", "0930", "930" and "9" become [9, 30] / [9, 0];
-    # anything else (blank, "25:00", "abc") becomes nil.
+    # "09:30", "9:30", "0930", "930" and "9" become [9, 30] / [9, 0]. Seconds
+    # ("09:30:00") are dropped and a full-width colon ("09\uFF1A30", typed
+    # with some input methods) counts as a colon. Anything else (blank,
+    # "25:00", "abc") becomes nil.
     def parse(value)
-      text = value.to_s.strip
-      match = text.match(/\A(\d{1,2}):?(\d{2})?\z/)
+      text = value.to_s.strip.tr("\uFF1A", ':')
+      match = text.match(/\A(\d{1,2}):?(\d{2})?(?::[0-5]\d)?\z/)
       return nil unless match
 
       hour = match[1].to_i

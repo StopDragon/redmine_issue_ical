@@ -8,8 +8,8 @@
 (function() {
   var selector = <%= raw ids.map { |id| "input#issue_custom_field_values_#{id.to_i}" }.join(', ').to_json %>;
   function format(value) {
-    var text = value.trim();
-    var match = text.match(/^(\d{1,2}):?(\d{2})?$/);
+    var text = value.trim().replace(/\uFF1A/g, ':');
+    var match = text.match(/^(\d{1,2}):?(\d{2})?(?::[0-5]\d)?$/);
     if (!match) return value;
     var hour = parseInt(match[1], 10), minute = parseInt(match[2] || '0', 10);
     if (hour > 23 || minute > 59) return value;
