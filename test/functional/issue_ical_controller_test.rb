@@ -366,7 +366,7 @@ class IssueIcalControllerTest < Redmine::ControllerTest
   end
 
   def summary_of_issue4
-    feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')[/^SUMMARY:.*#4\).*$/]
+    feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')[/^SUMMARY:[^\r\n]*#4\)/]
   end
 
   test 'with a client field the title is client-subject(#id)' do
