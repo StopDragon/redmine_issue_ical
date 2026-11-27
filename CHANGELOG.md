@@ -3,7 +3,9 @@
 ## 0.7.0 (2026-11-27)
 
 - Start and end times: pick two issue custom fields (format Text, e.g. `09:30`) under *Administration → Plugins → Configure*. Issues with a start time become timed events from the start date at the start time to the due date at the end time (when the end time is empty, it ends one hour after the start time on the due date); others stay all-day. Times are read in the user's time zone, else the one set for the plugin, else the server's, and sent in UTC. Fields hidden from the user by role are not used.
-- On the issue form those fields get the colon added for you: `930` or `0930` becomes `09:30` when you leave the field or save.
+- Location: a third custom field picked in the same settings is sent as the event location.
+- Issues of a priority above the default one (High, Urgent, Immediate in a stock Redmine) show as busy in the calendar; the others stay free.
+- On the issue form the time fields get the colon added for you: `930` or `0930` becomes `09:30` when you leave the field or save.
 - The event description now starts with the issue's own description as plain text, without Textile / Markdown markup (cut off after 1000 characters), followed by a blank line and the status, priority, assignee and % done lines.
 - The event description no longer repeats the issue link; it is sent once as the event URL, which calendar apps show as a link.
 

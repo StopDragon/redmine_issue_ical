@@ -300,6 +300,28 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     end
   end
 
+  test 'the location field becomes the event location' do
+    field = time_field('Location')
+    CustomValue.create!(customized: Issue.find(4), custom_field: field, value: 'Room 3')
+    with_settings(plugin_redmine_issue_ical: { 'location_field_id' => field.id.to_s }) do
+      body = feed_body(key: User.find(2).atom_key)
+      assert_includes body, "LOCATION:Room 3\r\n"
+      assert_includes body, "DTSTART;VALUE=DATE:20261201\r\n"
+    end
+  end
+
+  test 'issues above the default priority are busy, the others free' do
+    default = IssuePriority.default_or_middle
+    high = IssuePriority.active.detect { |priority| priority.position > default.position }
+    Issue.find(4).update_columns(priority_id: high.id)
+    assert_includes feed_body(key: User.find(2).atom_key), "TRANSP:OPAQUE\r\n"
+
+    Issue.find(4).update_columns(priority_id: default.id)
+    body = feed_body(key: User.find(2).atom_key)
+    assert_includes body, "TRANSP:TRANSPARENT\r\n"
+    assert_not_includes body, 'TRANSP:OPAQUE'
+  end
+
   test 'an invalid start time keeps the event all-day' do
     set_user_time_zone('Seoul')
     with_time_fields('soon', '18:00') do

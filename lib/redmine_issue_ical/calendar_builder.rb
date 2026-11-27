@@ -8,7 +8,7 @@ module RedmineIssueIcal
   # Plain Ruby so it can be tested without a Redmine instance.
   class CalendarBuilder
     Event = Struct.new(:uid, :summary, :description, :url, :start_date, :due_date, :updated_at,
-                       :start_at, :end_at, keyword_init: true)
+                       :start_at, :end_at, :location, :busy, keyword_init: true)
 
     PRODID = '-//redmine_issue_ical//Redmine Issue iCal//EN'
     LINE_LIMIT = 75 # octets, excluding CRLF (RFC 5545 3.1)
@@ -57,8 +57,9 @@ module RedmineIssueIcal
         "DTSTAMP:#{utc(@now)}",
         *time_lines(event, range),
         "SUMMARY:#{escape(event.summary)}",
-        'TRANSP:TRANSPARENT'
+        event.busy ? 'TRANSP:OPAQUE' : 'TRANSP:TRANSPARENT'
       ]
+      lines << "LOCATION:#{escape(event.location)}" if event.location.to_s.strip != ''
       lines << "LAST-MODIFIED:#{utc(event.updated_at)}" if event.updated_at
       lines << "DESCRIPTION:#{escape(event.description)}" if event.description.to_s != ''
       lines << "URL:#{event.url}" if event.url.to_s != ''

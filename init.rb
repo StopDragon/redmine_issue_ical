@@ -15,7 +15,8 @@ Redmine::Plugin.register :redmine_issue_ical do
   version '0.7.0'
   url 'https://github.com/StopDragon/redmine_issue_ical'
   requires_redmine version_or_higher: '7.0.0'
-  settings default: { 'start_time_field_id' => '', 'end_time_field_id' => '', 'time_zone' => '' },
+  settings default: { 'start_time_field_id' => '', 'end_time_field_id' => '', 'time_zone' => '',
+                      'location_field_id' => '' },
            partial: 'settings/issue_ical'
 end
 

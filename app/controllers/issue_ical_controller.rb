@@ -12,9 +12,10 @@
 # whether closed issues are left out follow the user's preference
 # (My account > Preferences).
 #
-# Issues get a start and end time when the administrator picked the custom
-# fields holding them (Administration > Plugins > Configure); otherwise, or
-# when the start time is missing, they are all-day events.
+# Issues get a start and end time and a location when the administrator
+# picked the custom fields holding them (Administration > Plugins >
+# Configure); without a start time they are all-day events. Issues of a
+# priority above the default one show as busy, the others as free.
 #
 # Calendar apps cannot log in, so the feed accepts the user's Atom access key,
 # the same key Redmine uses for its Atom feeds. Results go through
@@ -32,9 +33,9 @@ class IssueIcalController < ApplicationController
 
   def index
     issues = feed_scope.limit(self.class.max_issues).to_a
-    times = time_values(issues)
+    values = field_values(issues)
     calendar = RedmineIssueIcal::CalendarBuilder.new(name: calendar_name)
-                                                .build(issues.map { |issue| to_event(issue, times[issue.id]) })
+                                                .build(issues.map { |issue| to_event(issue, values[issue.id]) })
     send_data calendar,
               type: 'text/calendar; charset=utf-8',
               disposition: 'inline',
@@ -114,11 +115,14 @@ class IssueIcalController < ApplicationController
     @tracker ? "#{name} - #{@tracker.name}" : name
   end
 
-  def to_event(issue, times)
-    starts, ends = event_span(issue, times)
+  def to_event(issue, values)
+    values ||= {}
+    starts, ends = event_span(issue, values['start_time_field_id'], values['end_time_field_id'])
     RedmineIssueIcal::CalendarBuilder::Event.new(
       start_at: starts,
       end_at: ends,
+      location: values['location_field_id'],
+      busy: busy?(issue),
       uid: "redmine-issue-#{issue.id}@#{request.host}",
       summary: summary_for(issue),
       description: description_for(issue),
@@ -133,44 +137,53 @@ class IssueIcalController < ApplicationController
     Setting.plugin_redmine_issue_ical || {}
   end
 
-  # The start and end time custom fields the administrator picked.
-  def time_fields
-    @time_fields ||= begin
-      ids = [plugin_settings['start_time_field_id'], plugin_settings['end_time_field_id']]
-      fields = IssueCustomField.where(id: ids.compact.reject { |id| id.to_s == '' }).index_by(&:id)
-      ids.map { |id| fields[id.to_i] }
+  FIELD_SETTINGS = %w[start_time_field_id end_time_field_id location_field_id].freeze
+
+  # { setting name => custom field } for the fields the administrator picked.
+  def picked_fields
+    @picked_fields ||= begin
+      ids = FIELD_SETTINGS.to_h { |key| [key, plugin_settings[key].to_s] }.reject { |_, id| id == '' }
+      fields = IssueCustomField.where(id: ids.values).index_by { |field| field.id.to_s }
+      ids.transform_values { |id| fields[id] }.compact
     end
   end
 
-  # { issue_id => [start time text, end time text] } in one query. A value
-  # is left out when the user may not see the field in that project.
-  def time_values(issues)
-    start_field, end_field = time_fields
-    fields = [start_field, end_field].compact.uniq
-    return {} if fields.empty? || issues.empty?
+  # { issue_id => { setting name => value } } in one query. A value is left
+  # out when the user may not see the field in that project.
+  def field_values(issues)
+    picked = picked_fields
+    return {} if picked.empty? || issues.empty?
 
     issues_by_id = issues.index_by(&:id)
-    values = Hash.new { |hash, key| hash[key] = [nil, nil] }
+    fields_by_id = picked.values.index_by(&:id)
+    values = Hash.new { |hash, key| hash[key] = {} }
     visible = Hash.new { |hash, (field, project)| hash[[field, project]] = field.visible_by?(project, User.current) }
-    CustomValue.where(customized_type: 'Issue', customized_id: issues_by_id.keys, custom_field_id: fields.map(&:id))
+    CustomValue.where(customized_type: 'Issue', customized_id: issues_by_id.keys, custom_field_id: fields_by_id.keys)
                .pluck(:customized_id, :custom_field_id, :value).each do |issue_id, field_id, value|
-      field = fields.find { |f| f.id == field_id }
+      field = fields_by_id[field_id]
       next unless visible[[field, issues_by_id[issue_id].project]]
 
-      values[issue_id][0] = value if field == start_field
-      values[issue_id][1] = value if field == end_field
+      picked.each { |key, picked_field| values[issue_id][key] = value if picked_field == field }
     end
     values
   end
 
-  def event_span(issue, times)
-    return nil unless times
+  # Priorities above the default one (in a stock Redmine: High, Urgent and
+  # Immediate) block time in the calendar. Same rule as IssuePriority#high?,
+  # with the baseline looked up once per feed.
+  def busy?(issue)
+    @baseline_priority = IssuePriority.default_or_middle&.position unless defined?(@baseline_priority)
+    !@baseline_priority.nil? && issue.priority.position.to_i > @baseline_priority
+  end
+
+  def event_span(issue, start_value, end_value)
+    return nil if start_value.to_s.strip == ''
 
     range = RedmineIssueIcal::CalendarBuilder.date_range(issue.start_date, issue.due_date)
     return nil unless range
 
     zone = time_zone
-    RedmineIssueIcal::EventTime.span(range[0], range[1] - 1, times[0], times[1]) do |date, hour, minute|
+    RedmineIssueIcal::EventTime.span(range[0], range[1] - 1, start_value, end_value) do |date, hour, minute|
       zone ? zone.local(date.year, date.month, date.day, hour, minute) : Time.local(date.year, date.month, date.day, hour, minute)
     end
   rescue StandardError => e
