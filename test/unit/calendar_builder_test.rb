@@ -49,6 +49,17 @@ class CalendarBuilderTest < ActiveSupport::TestCase
     assert_not_includes ics, 'VALUE=DATE'
   end
 
+  test 'events are free unless busy' do
+    assert_includes build(event), "TRANSP:TRANSPARENT\r\n"
+    assert_includes build(event(busy: true)), "TRANSP:OPAQUE\r\n"
+  end
+
+  test 'adds an escaped location when there is one' do
+    assert_includes build(event(location: 'Room 3, Seoul')), "LOCATION:Room 3\\, Seoul\r\n"
+    assert_not_includes build(event(location: '  ')), 'LOCATION'
+    assert_not_includes build(event), 'LOCATION'
+  end
+
   test 'skips events without any date' do
     ics = build(event(start_date: nil, due_date: nil))
     assert_not_includes ics, 'BEGIN:VEVENT'

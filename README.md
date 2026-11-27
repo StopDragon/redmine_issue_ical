@@ -61,17 +61,18 @@ Feed URLs:
 
 - Title: `[Project] Tracker #123: Subject`
 - Description: the issue's own description as plain text, without Textile / Markdown markup (first 1000 characters), a blank line, then status, priority, assignee and % done (the issue link is sent as the event URL)
-- Events are marked as *free* (`TRANSP:TRANSPARENT`), so they do not block your availability.
+- Events are marked as *free* (`TRANSP:TRANSPARENT`), so they do not block your availability, except issues of a priority above the default one (in a stock Redmine: High, Urgent, Immediate), which are marked *busy* (`TRANSP:OPAQUE`).
 - At most 2,000 issues per feed.
 
 Redmine stores start and due dates without a time, so events are all-day unless you set up time fields (below).
 
-### Start and end times (optional)
+### Start and end times, location (optional)
 
-Redmine has no time field, so times are kept in two issue custom fields:
+Redmine has no time or location field, so they are kept in issue custom fields:
 
 1. *Administration → Custom fields → New custom field → Issues*, format **Text**, one named e.g. *Start time* and one *End time*. A regular expression such as `^([01]\d|2[0-3]):?[0-5]\d$` lets only times like `09:30` or `0930` through.
-2. *Administration → Plugins → Redmine Issue iCal → Configure*: pick the two fields, and optionally the time zone the times are written in.
+2. For a location, another **Text** custom field, e.g. *Location*.
+3. *Administration → Plugins → Redmine Issue iCal → Configure*: pick the fields, and optionally the time zone the times are written in.
 
 Then:
 
@@ -83,6 +84,7 @@ Then:
 
 - An end at or before the start becomes one hour from the start; a value that is not a time (e.g. `soon`) keeps the issue all-day.
 - Times are read in the user's time zone (*My account → Preferences*), else the time zone picked in the plugin settings, else the server's. They are sent in UTC, so every calendar app shows them in its own time zone.
+- The location field is sent as the event location (`LOCATION`). Apple Calendar can look an address up on the map; a meeting link works too.
 - A field the user may not see (custom field visibility by role) is not used for that user's feed.
 - On the issue form, `930`, `0930` or `9` turns into `09:30` / `09:00` when you leave the field or save, so you do not need to type the colon.
 
