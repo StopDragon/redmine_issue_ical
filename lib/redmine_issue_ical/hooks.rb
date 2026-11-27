@@ -5,5 +5,6 @@ module RedmineIssueIcal
     render_on :view_my_account_contextual, partial: 'issue_ical/my_account'
     render_on :view_my_account_preferences, partial: 'issue_ical/preferences'
     render_on :view_issues_sidebar_queries_bottom, partial: 'issue_ical/sidebar'
+    render_on :view_layouts_base_html_head, partial: 'issue_ical/time_fields_script'
   end
 end

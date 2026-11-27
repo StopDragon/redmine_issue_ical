@@ -12,9 +12,11 @@ Redmine::Plugin.register :redmine_issue_ical do
   name 'Redmine Issue iCal'
   author 'StopDragon'
   description 'Subscribe to issue start and due dates from any calendar app (iCalendar / .ics feed).'
-  version '0.6.0'
+  version '0.7.0'
   url 'https://github.com/StopDragon/redmine_issue_ical'
   requires_redmine version_or_higher: '7.0.0'
+  settings default: { 'start_time_field_id' => '', 'end_time_field_id' => '', 'time_zone' => '' },
+           partial: 'settings/issue_ical'
 end
 
 # Hooks register themselves when the class is loaded.

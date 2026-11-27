@@ -41,6 +41,14 @@ class CalendarBuilderTest < ActiveSupport::TestCase
     assert_includes ics, "UID:redmine-issue-1@example.org\r\n"
   end
 
+  test 'builds a timed event in UTC' do
+    ics = build(event(start_at: Time.new(2026, 12, 1, 9, 30, 0, '+09:00'),
+                      end_at: Time.new(2026, 12, 3, 18, 0, 0, '+09:00')))
+    assert_includes ics, "DTSTART:20261201T003000Z\r\n"
+    assert_includes ics, "DTEND:20261203T090000Z\r\n"
+    assert_not_includes ics, 'VALUE=DATE'
+  end
+
   test 'skips events without any date' do
     ics = build(event(start_date: nil, due_date: nil))
     assert_not_includes ics, 'BEGIN:VEVENT'

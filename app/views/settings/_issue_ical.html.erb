@@ -1,0 +1,23 @@
+<% time_fields = IssueCustomField.where(field_format: 'string').sorted.map { |field| [field.name, field.id.to_s] } %>
+<p><%= l(:text_issue_ical_time_fields_intro) %></p>
+<p>
+  <label for="settings_start_time_field_id"><%= l(:label_issue_ical_start_time_field) %></label>
+  <%= select_tag 'settings[start_time_field_id]',
+                 options_for_select([[l(:label_none), '']] + time_fields, @settings['start_time_field_id'].to_s),
+                 id: 'settings_start_time_field_id' %>
+</p>
+<p>
+  <label for="settings_end_time_field_id"><%= l(:label_issue_ical_end_time_field) %></label>
+  <%= select_tag 'settings[end_time_field_id]',
+                 options_for_select([[l(:label_none), '']] + time_fields, @settings['end_time_field_id'].to_s),
+                 id: 'settings_end_time_field_id' %>
+</p>
+<p>
+  <label for="settings_time_zone"><%= l(:label_issue_ical_time_zone) %></label>
+  <%= select_tag 'settings[time_zone]',
+                 options_for_select([[l(:label_issue_ical_time_zone_server, zone: Time.now.zone), '']] +
+                                    ActiveSupport::TimeZone.all.map { |zone| [zone.to_s, zone.name] },
+                                    @settings['time_zone'].to_s),
+                 id: 'settings_time_zone' %>
+  <em class="info"><%= l(:text_issue_ical_time_zone_hint) %></em>
+</p>

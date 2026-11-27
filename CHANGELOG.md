@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 (2026-11-27)
+
+- Start and end times: pick two issue custom fields (format Text, e.g. `09:30`) under *Administration → Plugins → Configure*. Issues with a start time become timed events from the start date at the start time to the due date at the end time (when the end time is empty, it ends one hour after the start time on the due date); others stay all-day. Times are read in the user's time zone, else the one set for the plugin, else the server's, and sent in UTC. Fields hidden from the user by role are not used.
+- On the issue form those fields get the colon added for you: `930` or `0930` becomes `09:30` when you leave the field or save.
+- The event description now starts with the issue's own description as plain text, without Textile / Markdown markup (cut off after 1000 characters), followed by a blank line and the status, priority, assignee and % done lines.
+- The event description no longer repeats the issue link; it is sent once as the event URL, which calendar apps show as a link.
+
 ## 0.6.0 (2026-11-26)
 
 - Feeds per tracker: the subscribe dialog has a *Tracker* picker (*All trackers* or one tracker). Picking a tracker changes the URL and the subscribe links to a calendar of only that tracker, so each tracker can be subscribed to separately and colored or toggled in the calendar app. Works for both the personal and the project feeds (`tracker_id=N` in the URL); the calendar is named e.g. *Issues - Bug*.

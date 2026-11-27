@@ -199,9 +199,37 @@ class IssueIcalControllerTest < Redmine::ControllerTest
   end
 
   test 'issue url and description are included' do
+    Issue.find(4).update_columns(description: '')
     body = feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')
     assert_includes body, 'URL:http://test.host/issues/4'
     assert_includes body, 'DESCRIPTION:Status: New\\nPriority: '
+    description = body[/^DESCRIPTION:.*$/]
+    assert_not_includes description, '/issues/'
+  end
+
+  test 'the issue description comes first, then a blank line and the summary' do
+    Issue.find(4).update_columns(description: "First line\r\nSecond line\r\n")
+    body = feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')
+    assert_includes body, 'DESCRIPTION:First line\\nSecond line\\n\\nStatus: New\\nPriority: '
+  end
+
+  test 'markup is removed from the issue description' do
+    with_settings text_formatting: 'textile' do
+      Issue.find(4).update_columns(description: "h2. Heading\r\n\r\nSome *bold* and _italic_ text")
+      body = feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')
+      description = body[/^DESCRIPTION:.*$/]
+      assert_includes description, 'Heading'
+      assert_includes description, 'Some bold and italic text'
+      assert_not_includes description, 'h2.'
+      assert_not_includes description, '*'
+    end
+  end
+
+  test 'a long issue description is cut off' do
+    Issue.find(4).update_columns(description: 'a' * 1500)
+    body = feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')
+    assert_includes body, "DESCRIPTION:#{'a' * 1000}\u2026\\n\\nStatus: "
+    assert_not_includes body, 'a' * 1001
   end
 
   test 'over the cap, the newest issues are kept' do
@@ -221,6 +249,63 @@ class IssueIcalControllerTest < Redmine::ControllerTest
   test 'atom key does not start a session' do
     feed_body(key: User.find(2).atom_key)
     assert_nil session[:user_id]
+  end
+
+  def time_field(name, visible: true)
+    IssueCustomField.create!(name: name, field_format: 'string', is_for_all: true, visible: visible,
+                             role_ids: visible ? [] : [Role.create!(name: "Nobody #{name}").id], tracker_ids: Tracker.pluck(:id))
+  end
+
+  # Issue 4 runs from 2026-12-01 to 2026-12-03 (see setup).
+  def with_time_fields(start_value, end_value, visible: true, zone: '')
+    start_field = time_field('Start time', visible: visible)
+    end_field = time_field('End time', visible: visible)
+    CustomValue.create!(customized: Issue.find(4), custom_field: start_field, value: start_value)
+    CustomValue.create!(customized: Issue.find(4), custom_field: end_field, value: end_value)
+    settings = { 'start_time_field_id' => start_field.id.to_s, 'end_time_field_id' => end_field.id.to_s,
+                 'time_zone' => zone }
+    with_settings(plugin_redmine_issue_ical: settings) { yield }
+  end
+
+  def set_user_time_zone(zone)
+    pref = User.find(2).pref
+    pref.time_zone = zone
+    pref.save!
+  end
+
+  test 'issues with a start and end time become timed events in UTC' do
+    set_user_time_zone('Seoul')
+    with_time_fields('09:30', '1800') do
+      body = feed_body(key: User.find(2).atom_key)
+      assert_includes body, "DTSTART:20261201T003000Z\r\n"
+      assert_includes body, "DTEND:20261203T090000Z\r\n"
+      assert_not_includes body, "DTSTART;VALUE=DATE:20261201\r\n"
+    end
+  end
+
+  test 'the plugin time zone is used when the user has none' do
+    set_user_time_zone('')
+    with_time_fields('09:30', '18:00', zone: 'Tokyo') do
+      body = feed_body(key: User.find(2).atom_key)
+      assert_includes body, "DTSTART:20261201T003000Z\r\n"
+    end
+  end
+
+  test 'a time field the user may not see is not used' do
+    set_user_time_zone('Seoul')
+    with_time_fields('09:30', '18:00', visible: false) do
+      body = feed_body(key: User.find(2).atom_key)
+      assert_includes body, "DTSTART;VALUE=DATE:20261201\r\n"
+      assert_not_includes body, 'DTSTART:2026'
+    end
+  end
+
+  test 'an invalid start time keeps the event all-day' do
+    set_user_time_zone('Seoul')
+    with_time_fields('soon', '18:00') do
+      body = feed_body(key: User.find(2).atom_key)
+      assert_includes body, "DTSTART;VALUE=DATE:20261201\r\n"
+    end
   end
 end
 
