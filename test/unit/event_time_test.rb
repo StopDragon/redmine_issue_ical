@@ -18,10 +18,12 @@ class EventTimeTest < ActiveSupport::TestCase
     assert_equal [9, 30], EventTime.parse('930')
     assert_equal [9, 0], EventTime.parse('9')
     assert_equal [23, 59], EventTime.parse(' 23:59 ')
+    assert_equal [9, 30], EventTime.parse('09:30:00')
+    assert_equal [9, 30], EventTime.parse("09\uFF1A30")
   end
 
   test 'rejects blank and invalid times' do
-    [nil, '', '24:00', '12:60', 'abc', '9:3', '12345', '9.30'].each do |value|
+    [nil, '', '24:00', '12:60', 'abc', '9:3', '12345', '9.30', '09:30:60', '9:30:'].each do |value|
       assert_nil EventTime.parse(value), value.inspect
     end
   end

@@ -122,7 +122,7 @@ class IssueIcalController < ApplicationController
       start_at: starts,
       end_at: ends,
       location: values['location_field_id'],
-      busy: busy?(issue),
+      busy: !starts.nil? && busy?(issue),
       uid: "redmine-issue-#{issue.id}@#{request.host}",
       summary: summary_for(issue),
       description: description_for(issue),
@@ -148,8 +148,9 @@ class IssueIcalController < ApplicationController
     end
   end
 
-  # { issue_id => { setting name => value } } in one query. A value is left
-  # out when the user may not see the field in that project.
+  # { issue_id => { setting name => value } } in one query. As on the issue
+  # page, a value is left out when the field is not enabled for the issue's
+  # project and tracker, or the user may not see it in that project.
   def field_values(issues)
     picked = picked_fields
     return {} if picked.empty? || issues.empty?
@@ -158,18 +159,24 @@ class IssueIcalController < ApplicationController
     fields_by_id = picked.values.index_by(&:id)
     values = Hash.new { |hash, key| hash[key] = {} }
     visible = Hash.new { |hash, (field, project)| hash[[field, project]] = field.visible_by?(project, User.current) }
+    available = Hash.new do |hash, (project, tracker)|
+      hash[[project, tracker]] = (project.all_issue_custom_fields & tracker.custom_fields).map(&:id)
+    end
     CustomValue.where(customized_type: 'Issue', customized_id: issues_by_id.keys, custom_field_id: fields_by_id.keys)
                .pluck(:customized_id, :custom_field_id, :value).each do |issue_id, field_id, value|
       field = fields_by_id[field_id]
-      next unless visible[[field, issues_by_id[issue_id].project]]
+      issue = issues_by_id[issue_id]
+      next unless available[[issue.project, issue.tracker]].include?(field_id)
+      next unless visible[[field, issue.project]]
 
       picked.each { |key, picked_field| values[issue_id][key] = value if picked_field == field }
     end
     values
   end
 
-  # Priorities above the default one (in a stock Redmine: High, Urgent and
-  # Immediate) block time in the calendar. Same rule as IssuePriority#high?,
+  # Timed events of a priority above the default one (in a stock Redmine:
+  # High, Urgent and Immediate) block time in the calendar. All-day events
+  # never do, so a long issue does not make its assignee busy for weeks. Same rule as IssuePriority#high?,
   # with the baseline looked up once per feed.
   def busy?(issue)
     @baseline_priority = IssuePriority.default_or_middle&.position unless defined?(@baseline_priority)
@@ -225,24 +232,34 @@ class IssueIcalController < ApplicationController
       "#{l(:field_assigned_to)}: #{issue.assigned_to&.name || '-'}",
       "#{l(:field_done_ratio)}: #{issue.done_ratio}%"
     ].join("\n")
-    text = plain_text(issue.description)
+    text = plain_text(issue)
     return summary if text.empty?
 
     text = "#{text[0, DESCRIPTION_LIMIT].rstrip}\u2026" if text.length > DESCRIPTION_LIMIT
     "#{text}\n\n#{summary}"
   end
 
-  # Renders the text with the site's text formatting (Textile / Markdown) and
-  # reads the HTML back as plain text, so calendar apps show no markup.
-  # Redmine links and macros (#123, [[Page]], {{toc}}) are left as written.
-  def plain_text(text)
-    text = text.to_s.gsub(/\r\n?/, "\n").strip
+  # Renders the description with the site's text formatting (Textile /
+  # Markdown) and reads the HTML back as plain text, so calendar apps show no
+  # markup. Redmine links and macros (#123, [[Page]], {{toc}}) are left as
+  # written. Only the start is rendered, since only DESCRIPTION_LIMIT
+  # characters are kept, and the HTML goes through Redmine's formatted text
+  # cache when that is turned on.
+  def plain_text(issue)
+    text = issue.description.to_s.gsub(/\r\n?/, "\n").strip
     return text if text.empty?
 
-    html = Redmine::WikiFormatting.to_html(Setting.text_formatting, text)
-    Redmine::WikiFormatting::HtmlParser.to_text(html).strip
+    text = text[0, DESCRIPTION_LIMIT * 3]
+    html = Redmine::WikiFormatting.to_html(Setting.text_formatting, text, object: issue, attribute: :description)
+    Redmine::WikiFormatting::HtmlParser.to_text(keep_pre_line_breaks(html)).strip
   rescue StandardError => e
     Rails.logger.warn("redmine_issue_ical: could not strip markup: #{e.class}: #{e.message}")
-    text
+    text.to_s
+  end
+
+  # HtmlParser.to_text turns every newline into a space; inside code blocks
+  # the line breaks matter, so they become <br> first.
+  def keep_pre_line_breaks(html)
+    html.gsub(%r{<pre\b[^>]*>.*?</pre>}m) { |pre| pre.gsub(/\r?\n/, '<br>') }
   end
 end

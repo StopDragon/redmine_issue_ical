@@ -310,16 +310,55 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     end
   end
 
-  test 'issues above the default priority are busy, the others free' do
+  test 'timed issues above the default priority are busy, the others free' do
+    default = IssuePriority.default_or_middle
+    high = IssuePriority.active.detect { |priority| priority.position > default.position }
+    set_user_time_zone('Seoul')
+    with_time_fields('09:30', '18:00') do
+      Issue.find(4).update_columns(priority_id: high.id)
+      assert_includes feed_body(key: User.find(2).atom_key), "TRANSP:OPAQUE\r\n"
+
+      Issue.find(4).update_columns(priority_id: default.id)
+      body = feed_body(key: User.find(2).atom_key)
+      assert_includes body, "TRANSP:TRANSPARENT\r\n"
+      assert_not_includes body, 'TRANSP:OPAQUE'
+    end
+  end
+
+  test 'all-day issues stay free whatever the priority' do
     default = IssuePriority.default_or_middle
     high = IssuePriority.active.detect { |priority| priority.position > default.position }
     Issue.find(4).update_columns(priority_id: high.id)
-    assert_includes feed_body(key: User.find(2).atom_key), "TRANSP:OPAQUE\r\n"
-
-    Issue.find(4).update_columns(priority_id: default.id)
     body = feed_body(key: User.find(2).atom_key)
-    assert_includes body, "TRANSP:TRANSPARENT\r\n"
+    assert_includes body, "DTSTART;VALUE=DATE:20261201\r\n"
     assert_not_includes body, 'TRANSP:OPAQUE'
+  end
+
+  test 'a field not enabled for the issue project is not used' do
+    field = IssueCustomField.create!(name: 'Location', field_format: 'string', is_for_all: false,
+                                     project_ids: [1], tracker_ids: Tracker.pluck(:id))
+    CustomValue.create!(customized: Issue.find(4), custom_field: field, value: 'Old room') # issue 4 is in project 2
+    with_settings(plugin_redmine_issue_ical: { 'location_field_id' => field.id.to_s }) do
+      assert_not_includes feed_body(key: User.find(2).atom_key), 'LOCATION:'
+    end
+  end
+
+  test 'a field not enabled for the issue tracker is not used' do
+    issue = Issue.find(4)
+    field = IssueCustomField.create!(name: 'Location', field_format: 'string', is_for_all: true,
+                                     tracker_ids: Tracker.where.not(id: issue.tracker_id).pluck(:id))
+    CustomValue.create!(customized: issue, custom_field: field, value: 'Old room')
+    with_settings(plugin_redmine_issue_ical: { 'location_field_id' => field.id.to_s }) do
+      assert_not_includes feed_body(key: User.find(2).atom_key), 'LOCATION:'
+    end
+  end
+
+  test 'code blocks in the description keep their line breaks' do
+    with_settings text_formatting: 'common_mark' do
+      Issue.find(4).update_columns(description: "Log:\r\n\r\n```\r\nline one\r\nline two\r\n```\r\n")
+      body = feed_body(key: User.find(2).atom_key).gsub("\r\n ", '')
+      assert_includes body[/^DESCRIPTION:.*$/], 'line one\\nline two'
+    end
   end
 
   test 'an invalid start time keeps the event all-day' do
@@ -395,5 +434,40 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
     get '/projects/ecookbook/issues'
     assert_response :success
     assert_select 'ul.issue-ical-links', 0
+  end
+
+  def text_field(name)
+    IssueCustomField.create!(name: name, field_format: 'string', is_for_all: true, tracker_ids: Tracker.pluck(:id))
+  end
+
+  test 'the plugin settings page lists text custom fields and time zones' do
+    field = text_field('Start time')
+    log_user('admin', 'admin')
+    get '/settings/plugin/redmine_issue_ical'
+    assert_response :success
+    assert_select 'select#settings_start_time_field_id option[value=?]', field.id.to_s
+    assert_select 'select#settings_end_time_field_id'
+    assert_select 'select#settings_location_field_id'
+    assert_select 'select#settings_time_zone option[value=?]', 'Seoul'
+  end
+
+  test 'the issue form gets the time format script when time fields are set' do
+    start_field = text_field('Start time')
+    end_field = text_field('End time')
+    settings = { 'start_time_field_id' => start_field.id.to_s, 'end_time_field_id' => end_field.id.to_s }
+    log_user('jsmith', 'jsmith')
+    with_settings(plugin_redmine_issue_ical: settings) do
+      get '/projects/ecookbook/issues/new'
+      assert_response :success
+      assert_includes response.body, "input#issue_custom_field_values_#{start_field.id}, input#issue_custom_field_values_#{end_field.id}"
+      assert_select "input#issue_custom_field_values_#{start_field.id}"
+    end
+  end
+
+  test 'no time format script without time fields' do
+    log_user('jsmith', 'jsmith')
+    get '/projects/ecookbook/issues/new'
+    assert_response :success
+    assert_not_includes response.body, "placeholder = '09:30'"
   end
 end
