@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0 (2026-11-27)
+
+- Alarms: pick an issue custom field (e.g. a multiple-value list with `정시`, `30분 전`, `1일 전`, `끝나기 10분 전`) as the alarm field in the plugin settings, and each picked value becomes an alarm on the event. All-day events count from 09:00. `없음` sends a "no alarm" (`ACTION:NONE`) so apps that understand it skip their default alarm. Google Calendar ignores alarms in subscribed calendars.
+
 ## 0.7.0 (2026-11-27)
 
 - Start and end times: pick two issue custom fields (format Text, e.g. `09:30`) under *Administration → Plugins → Configure*. Issues with a start time become timed events from the start date at the start time to the due date at the end time (when the end time is empty, it ends one hour after the start time on the due date); others stay all-day. Times are read in the user's time zone, else the one set for the plugin, else the server's, and sent in UTC. As on the issue page, values of fields not enabled for the issue's project and tracker, or hidden from the user by role, are not used. `09:30:00` and a full-width colon are accepted.

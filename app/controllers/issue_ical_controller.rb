@@ -125,6 +125,7 @@ class IssueIcalController < ApplicationController
       start_at: starts,
       end_at: ends,
       location: values['location_field_id'],
+      alarms: Array(values['alarm_field_id']).filter_map { |label| RedmineIssueIcal::Alarm.parse(label) },
       busy: !starts.nil? && busy?(issue),
       uid: "redmine-issue-#{issue.id}@#{request.host}",
       summary: summary_for(issue),
@@ -140,7 +141,8 @@ class IssueIcalController < ApplicationController
     Setting.plugin_redmine_issue_ical || {}
   end
 
-  FIELD_SETTINGS = %w[start_time_field_id end_time_field_id location_field_id].freeze
+  FIELD_SETTINGS = %w[start_time_field_id end_time_field_id location_field_id alarm_field_id].freeze
+  MULTIPLE_VALUE_SETTINGS = %w[alarm_field_id].freeze
 
   # { setting name => custom field } for the fields the administrator picked.
   def picked_fields
@@ -166,13 +168,21 @@ class IssueIcalController < ApplicationController
       hash[[project, tracker]] = (project.all_issue_custom_fields & tracker.custom_fields).map(&:id)
     end
     CustomValue.where(customized_type: 'Issue', customized_id: issues_by_id.keys, custom_field_id: fields_by_id.keys)
-               .pluck(:customized_id, :custom_field_id, :value).each do |issue_id, field_id, value|
+               .order(:id).pluck(:customized_id, :custom_field_id, :value).each do |issue_id, field_id, value|
       field = fields_by_id[field_id]
       issue = issues_by_id[issue_id]
       next unless available[[issue.project, issue.tracker]].include?(field_id)
       next unless visible[[field, issue.project]]
 
-      picked.each { |key, picked_field| values[issue_id][key] = value if picked_field == field }
+      picked.each do |key, picked_field|
+        next unless picked_field == field
+
+        if MULTIPLE_VALUE_SETTINGS.include?(key)
+          (values[issue_id][key] ||= []) << value
+        else
+          values[issue_id][key] = value
+        end
+      end
     end
     values
   end

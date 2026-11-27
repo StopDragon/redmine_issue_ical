@@ -402,6 +402,55 @@ class IssueIcalControllerTest < Redmine::ControllerTest
     end
   end
 
+  def alarm_field(multiple: true)
+    IssueCustomField.create!(name: 'Alarm', field_format: 'list', multiple: multiple, is_for_all: true,
+                             possible_values: ['없음', '정시', '30분 전', '1일 전', '끝나기 10분 전'],
+                             tracker_ids: Tracker.pluck(:id))
+  end
+
+  test 'alarm field values become VALARMs' do
+    field = alarm_field
+    CustomValue.create!(customized: Issue.find(4), custom_field: field, value: '30분 전')
+    CustomValue.create!(customized: Issue.find(4), custom_field: field, value: '1일 전')
+    with_settings(plugin_redmine_issue_ical: { 'alarm_field_id' => field.id.to_s }) do
+      body = feed_body(key: User.find(2).atom_key)
+      assert_equal 2, body.scan('BEGIN:VALARM').size
+      assert_includes body, "TRIGGER:PT8H30M\r\n" # all-day: 08:30 on the first day
+      assert_includes body, "TRIGGER:-PT15H\r\n" # all-day: 09:00 the day before
+    end
+  end
+
+  test 'alarms of a timed issue are relative to its start time' do
+    set_user_time_zone('Seoul')
+    alarm = alarm_field(multiple: false)
+    CustomValue.create!(customized: Issue.find(4), custom_field: alarm, value: '30분 전')
+    with_time_fields('09:30', '18:00') do
+      settings = Setting.plugin_redmine_issue_ical.merge('alarm_field_id' => alarm.id.to_s)
+      with_settings(plugin_redmine_issue_ical: settings) do
+        body = feed_body(key: User.find(2).atom_key)
+        assert_includes body, "DTSTART:20261201T003000Z\r\n"
+        assert_includes body, "TRIGGER:-PT30M\r\n"
+      end
+    end
+  end
+
+  test 'none in the alarm field asks for no alarm' do
+    field = alarm_field
+    CustomValue.create!(customized: Issue.find(4), custom_field: field, value: '없음')
+    with_settings(plugin_redmine_issue_ical: { 'alarm_field_id' => field.id.to_s }) do
+      body = feed_body(key: User.find(2).atom_key)
+      assert_includes body, "ACTION:NONE\r\n"
+      assert_equal 1, body.scan('BEGIN:VALARM').size
+    end
+  end
+
+  test 'no VALARM when the alarm field is empty' do
+    field = alarm_field
+    with_settings(plugin_redmine_issue_ical: { 'alarm_field_id' => field.id.to_s }) do
+      assert_not_includes feed_body(key: User.find(2).atom_key), 'VALARM'
+    end
+  end
+
   test 'an invalid start time keeps the event all-day' do
     set_user_time_zone('Seoul')
     with_time_fields('soon', '18:00') do
@@ -490,6 +539,7 @@ class IssueIcalLinksTest < Redmine::IntegrationTest
     assert_select 'select#settings_end_time_field_id'
     assert_select 'select#settings_location_field_id'
     assert_select 'select#settings_client_field_id'
+    assert_select 'select#settings_alarm_field_id'
     assert_select 'select#settings_time_zone option[value=?]', 'Seoul'
   end
 
