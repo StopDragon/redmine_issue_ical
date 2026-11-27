@@ -1,0 +1,37 @@
+<%# Formats the start / end time custom fields as HH:MM ("930" -> "09:30")
+    when the field is left or the form is sent. Bound on document because
+    Redmine redraws the issue form when the tracker or status changes. %>
+<% settings = Setting.plugin_redmine_issue_ical || {} %>
+<% ids = [settings['start_time_field_id'], settings['end_time_field_id']].map(&:to_s).reject(&:empty?).uniq %>
+<% if ids.any? %>
+<%= javascript_tag do %>
+(function() {
+  var selector = <%= raw ids.map { |id| "input#issue_custom_field_values_#{id.to_i}" }.join(', ').to_json %>;
+  function format(value) {
+    var text = value.trim();
+    var match = text.match(/^(\d{1,2}):?(\d{2})?$/);
+    if (!match) return value;
+    var hour = parseInt(match[1], 10), minute = parseInt(match[2] || '0', 10);
+    if (hour > 23 || minute > 59) return value;
+    return (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+  }
+  function formatField(field) {
+    var formatted = format(field.value);
+    if (formatted !== field.value) field.value = formatted;
+  }
+  document.addEventListener('focusin', function(event) {
+    var field = event.target;
+    if (field.matches && field.matches(selector) && !field.placeholder) {
+      field.placeholder = '09:30';
+      field.setAttribute('autocomplete', 'off');
+    }
+  });
+  document.addEventListener('focusout', function(event) {
+    if (event.target.matches && event.target.matches(selector)) formatField(event.target);
+  });
+  document.addEventListener('submit', function(event) {
+    if (event.target.querySelectorAll) event.target.querySelectorAll(selector).forEach(formatField);
+  }, true);
+})();
+<% end %>
+<% end %>

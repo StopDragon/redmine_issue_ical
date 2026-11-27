@@ -3,11 +3,12 @@
 require 'date'
 
 module RedmineIssueIcal
-  # Builds an RFC 5545 calendar with one all-day event per issue.
+  # Builds an RFC 5545 calendar with one event per issue: all-day, or timed
+  # when the event has start_at and end_at.
   # Plain Ruby so it can be tested without a Redmine instance.
   class CalendarBuilder
     Event = Struct.new(:uid, :summary, :description, :url, :start_date, :due_date, :updated_at,
-                       keyword_init: true)
+                       :start_at, :end_at, keyword_init: true)
 
     PRODID = '-//redmine_issue_ical//Redmine Issue iCal//EN'
     LINE_LIMIT = 75 # octets, excluding CRLF (RFC 5545 3.1)
@@ -54,8 +55,7 @@ module RedmineIssueIcal
         'BEGIN:VEVENT',
         "UID:#{escape(event.uid)}",
         "DTSTAMP:#{utc(@now)}",
-        "DTSTART;VALUE=DATE:#{range[0].strftime('%Y%m%d')}",
-        "DTEND;VALUE=DATE:#{range[1].strftime('%Y%m%d')}",
+        *time_lines(event, range),
         "SUMMARY:#{escape(event.summary)}",
         'TRANSP:TRANSPARENT'
       ]
@@ -65,8 +65,18 @@ module RedmineIssueIcal
       lines << 'END:VEVENT'
     end
 
+    # Timed events are written in UTC so no VTIMEZONE block is needed.
+    def time_lines(event, range)
+      if event.start_at && event.end_at
+        ["DTSTART:#{utc(event.start_at)}", "DTEND:#{utc(event.end_at)}"]
+      else
+        ["DTSTART;VALUE=DATE:#{range[0].strftime('%Y%m%d')}",
+         "DTEND;VALUE=DATE:#{range[1].strftime('%Y%m%d')}"]
+      end
+    end
+
     def utc(time)
-      time.utc.strftime('%Y%m%dT%H%M%SZ')
+      time.getutc.strftime('%Y%m%dT%H%M%SZ')
     end
 
     # RFC 5545 3.3.11 TEXT escaping.
