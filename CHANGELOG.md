@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0 (2026-11-27)
+
+- Start and end time go together: when both fields are set up, saving an issue with only one of the two times shows an error asking for the other. Older issues with a single time can still be edited for other reasons until a time is changed.
+
 ## 0.8.0 (2026-11-27)
 
 - Alarms: pick an issue custom field (e.g. a multiple-value list with `정시`, `30분 전`, `1일 전`, `끝나기 10분 전`) as the alarm field in the plugin settings, and each picked value becomes an alarm on the event. All-day events count from 09:00. `없음` sends a "no alarm" (`ACTION:NONE`) so apps that understand it skip their default alarm. Google Calendar ignores alarms in subscribed calendars.
