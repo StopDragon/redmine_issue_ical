@@ -23,6 +23,7 @@ ko:
   label_issue_ical_start_time_field: "시작 시간 필드"
   label_issue_ical_end_time_field: "종료 시간 필드"
   label_issue_ical_location_field: "장소 필드"
+  error_issue_ical_time_pair: "%{given}을(를) 입력했으면 %{missing}도 입력해야 합니다 (캘린더에 시간 일정으로 넣으려면 둘 다 필요합니다)"
   label_issue_ical_alarm_field: "알림 필드"
   text_issue_ical_alarm_field_hint: "정시, 15분 전, 1시간 전, 1일 전, 1주 전, 끝나기 10분 전 같은 값을 가진 목록 필드(여러 값 허용 가능). \"없음\"을 고르면 캘린더 앱이 기본 알림을 붙이지 않도록 요청합니다. 종일 일정은 오전 9시를 기준으로 울립니다. Google 캘린더는 구독 캘린더의 알림을 무시합니다."
   label_issue_ical_client_field: "클라이언트 필드 (프로젝트)"

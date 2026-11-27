@@ -82,6 +82,7 @@ Then:
 | filled | empty | from the start date at the start time to one hour after the start time on the due date (a single-day issue: one hour) |
 | empty | any | all-day, as before |
 
+- Once both fields are picked, an issue cannot be saved with only one of the two times: Redmine asks for the other one. Older issues that already have a single time can still be edited for other reasons until someone changes a time; the check is skipped when a field is not enabled for the issue or the user may not edit it.
 - `09:30:00` (seconds dropped) and a full-width colon `09：30` are accepted too. An end at or before the start becomes one hour from the start; a value that is not a time (e.g. `soon`) keeps the issue all-day.
 - Times are read in the user's time zone (*My account → Preferences*), else the time zone picked in the plugin settings, else the server's. They are sent in UTC, so every calendar app shows them in its own time zone.
 - The location field is sent as the event location (`LOCATION`). Apple Calendar can look an address up on the map; a meeting link works too.

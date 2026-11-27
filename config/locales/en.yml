@@ -23,6 +23,7 @@ en:
   label_issue_ical_start_time_field: "Start time field"
   label_issue_ical_end_time_field: "End time field"
   label_issue_ical_location_field: "Location field"
+  error_issue_ical_time_pair: "%{missing} is required when %{given} is filled in (the calendar needs both times)"
   label_issue_ical_alarm_field: "Alarm field"
   text_issue_ical_alarm_field_hint: "A list field (multiple values allowed) with values such as \"At time of event\", \"15 minutes before\", \"1 day before\", \"10 minutes before end\" (Korean: 정시, 15분 전, 1일 전, 끝나기 10분 전). \"None\" asks the app not to add its default alarm. All-day events count from 09:00. Google Calendar ignores alarms in subscribed calendars."
   label_issue_ical_client_field: "Client field (project)"
